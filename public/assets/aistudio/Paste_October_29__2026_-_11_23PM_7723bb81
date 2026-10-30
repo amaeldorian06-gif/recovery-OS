@@ -1,0 +1,748 @@
+# PROFESSIONAL IMPLEMENTATION PROMPT — REVENUE RECOVERY OS
+## Responsive UI Remediation, Authentication & Database Security Hardening, and Production-Ready SEO
+
+### ROLE
+
+Act as a senior full-stack SaaS engineer, responsive UI specialist, application security engineer, Supabase/PostgreSQL architect, technical SEO specialist, accessibility engineer, and QA automation lead.
+
+Your task is to **fix the existing Revenue Recovery OS application**, focusing on three critical workstreams:
+
+1. Responsive design and UI overflow defects.
+2. User authentication, data privacy, database connectivity, and authorization security.
+3. Operational, product-specific technical SEO for international B2B acquisition.
+
+This is an implementation task, not a design proposal. Inspect the actual repository, diagnose the underlying causes, implement appropriate fixes, and verify them with tests.
+
+Do not merely describe what should be changed. Modify the relevant code and configuration wherever repository access permits.
+
+Do not rebuild the entire application unnecessarily. Preserve the existing product functionality, design direction, business rules, and valid data.
+
+---
+
+# WORKSTREAM 1 — RESPONSIVE DESIGN AND UI DEFECT REMEDIATION
+
+## 1. Audit every relevant screen
+
+Inspect all existing public and authenticated routes, including:
+
+- Landing page
+- Authentication and registration screens
+- Dashboard
+- Receivables and customer tables
+- CSV import and column-mapping workflow
+- Filters, sorting, pagination, and search
+- Risk scores and status badges
+- Buttons, forms, dropdowns, modals, and tooltips
+- Settings and account pages
+- Subscription or license pages, if present
+- Error, loading, and empty states
+
+Identify the actual cause of each layout defect before changing styles.
+
+Specifically investigate:
+
+- Text overflowing buttons or badges
+- Buttons that are too narrow for their labels
+- Horizontal page overflow
+- Tables extending beyond the viewport
+- Overlapping columns and action menus
+- Broken sidebar navigation
+- Fixed widths that fail on smaller screens
+- Grid and flex children that refuse to shrink
+- Long email addresses, URLs, identifiers, and invoice references
+- Unbroken text and large numeric values
+- Modals exceeding viewport height
+- Dropdowns clipped by parent containers
+- Tooltips positioned outside the viewport
+- Inputs and forms wider than their containers
+- Excessive padding and inconsistent spacing
+- Charts or cards with fixed dimensions
+- Headers and navigation controls colliding
+- Font scaling and browser zoom issues
+
+Do not treat every overflow as a reason to hide content. Preserve access to important information and functionality.
+
+## 2. Required responsive behavior
+
+Support the following viewport widths at minimum:
+
+- 320 px
+- 360 px
+- 375 px
+- 390 px
+- 430 px
+- 768 px
+- 1024 px
+- 1280 px
+- 1440 px
+- 1920 px
+
+Test intermediate widths where layouts change.
+
+The application must remain usable on small mobile devices, tablets, laptops, and large desktop screens.
+
+Use responsive breakpoints based on the existing design system and actual component needs rather than applying arbitrary breakpoints to every element.
+
+### Layout rules
+
+- Use fluid containers and sensible maximum widths.
+- Prefer responsive Grid and Flexbox layouts.
+- Ensure flex and grid children can shrink where necessary.
+- Use `min-width: 0` where required to prevent content from forcing overflow.
+- Use `minmax(0, 1fr)` where appropriate for grid columns.
+- Use `max-width: 100%` for relevant media and containers.
+- Use consistent spacing tokens.
+- Avoid fixed widths and heights unless the component genuinely requires them.
+- Prefer `min-height` over rigid heights for content containers.
+- Account for mobile viewport behavior.
+- Keep interactive elements accessible and usable.
+- Avoid global CSS fixes that unintentionally break other screens.
+
+### Text and button integrity
+
+This is a critical requirement.
+
+For every button, badge, navigation item, table action, form control, and status label:
+
+- Ensure text stays inside its visual container.
+- Ensure sufficient horizontal and vertical padding.
+- Prevent text from overlapping icons.
+- Align icons and labels consistently.
+- Support longer translated or dynamic labels.
+- Use sensible line wrapping where appropriate.
+- Use ellipsis only when truncation is intentional and the complete value remains accessible.
+- Add tooltips or accessible full-value alternatives when truncation is necessary.
+- Use `white-space: nowrap` only when the component has enough space and the behavior is intentional.
+- Use `overflow-wrap: anywhere` or equivalent selectively for long identifiers and URLs.
+- Never clip essential text merely to preserve the design.
+
+For small screens, adapt button layout, label wrapping, action grouping, and navigation structure appropriately.
+
+Do not reduce font size indiscriminately to hide layout defects.
+
+### Data tables
+
+Financial tables require special attention.
+
+On small screens, choose the most appropriate strategy for each table:
+
+- Responsive horizontal scrolling inside the table container
+- Column prioritization
+- Collapsible secondary information
+- Compact card-based representations, where useful
+
+Do not hide essential financial information or destructive actions without a clear alternative.
+
+Keep column headers aligned with their values. Make row actions reachable. Ensure amounts, currencies, dates, statuses, and risk indicators remain understandable.
+
+If horizontal scrolling is used, it must not cause the entire page to overflow.
+
+### Navigation and overlays
+
+Verify:
+
+- Mobile sidebar or drawer behavior
+- Menu open and close interactions
+- Keyboard navigation
+- Focus management
+- Escape-key behavior where appropriate
+- Modal sizing and scrolling
+- Dropdown placement
+- Tooltip visibility near viewport edges
+- Layering and stacking contexts
+- Sticky headers and footers
+
+Overlays must not become inaccessible when the viewport is small.
+
+## 3. Visual regression and responsive acceptance tests
+
+Use the project's existing testing tools. If browser automation is available, use it to inspect key screens at the specified viewport widths.
+
+Add automated tests for the highest-risk components and workflows.
+
+Check for:
+
+- Unexpected document-level horizontal overflow
+- Buttons whose text exceeds their bounds
+- Inputs exceeding their parent containers
+- Elements overlapping other interactive controls
+- Modals exceeding the viewport
+- Missing or unreachable actions
+- Broken navigation at mobile breakpoints
+
+Where automated geometry checks are used, distinguish intentional internal scrolling from unintended page overflow.
+
+Capture before-and-after screenshots where the available tools support them.
+
+Do not claim all screens are responsive based on testing only the homepage.
+
+**Acceptance criteria:**
+
+- No unintended page-level horizontal overflow at tested viewport widths.
+- No visible text spilling outside buttons, badges, inputs, cards, or navigation controls.
+- All essential workflows remain usable on mobile and desktop.
+- No critical information becomes inaccessible.
+- Existing functionality remains intact.
+- Responsive tests and production build pass, or remaining failures are explicitly documented.
+
+---
+
+# WORKSTREAM 2 — AUTHENTICATION, USER DATA, AND DATABASE SECURITY
+
+## 4. Audit the authentication architecture
+
+Inspect the complete authentication flow using the existing Supabase and Next.js architecture.
+
+Verify:
+
+- Registration
+- Login
+- Logout
+- Session persistence
+- Session refresh
+- Password reset
+- Email verification, if enabled
+- Protected route behavior
+- Server-side authentication checks
+- API authorization
+- Redirect handling
+- Account ownership
+- Organization membership and roles, if applicable
+- License or subscription access checks, if present
+
+Use the authentication conventions appropriate to the installed Supabase SDK and Next.js version.
+
+Do not blindly copy deprecated authentication examples.
+
+Verify that server-side code correctly validates the current user and does not rely solely on client-side session state.
+
+A hidden button or protected frontend route is not an authorization boundary.
+
+### Authentication requirements
+
+- Unauthenticated users must not access protected financial data.
+- Expired or invalid sessions must be handled correctly.
+- Logout must invalidate the local authenticated state and follow the supported session flow.
+- Password reset and verification links must use validated redirect destinations.
+- Prevent open redirects.
+- Validate all server-side inputs.
+- Avoid exposing account-existence information unnecessarily in authentication errors.
+- Apply reasonable rate limiting to sensitive endpoints where supported.
+- Use secure cookie and session settings appropriate to the deployed architecture.
+- Do not store passwords, session secrets, or access tokens in insecure client-accessible storage.
+- Never log passwords, tokens, or sensitive authentication payloads.
+
+Do not introduce a second authentication system if Supabase Auth already provides the required capabilities.
+
+## 5. Secure user information and financial records
+
+Treat all imported invoices, customer details, financial values, collection notes, and organization records as confidential.
+
+Map how information moves through the application:
+
+Browser → Next.js server/API → Supabase client → PostgreSQL or Storage → response to authorized user.
+
+Identify every point where unauthorized data access could occur.
+
+Review:
+
+- Database reads and writes
+- API routes and Route Handlers
+- Server Actions, if present
+- CSV imports
+- CSV exports
+- Customer and invoice searches
+- Dashboard aggregations
+- File uploads and downloads
+- Audit logs
+- Error messages
+- Analytics events
+- Background tasks, if present
+
+Ensure that users receive only the records and fields they are authorized to access.
+
+Do not expose full database rows when the frontend needs only a small subset of fields.
+
+Do not return internal database errors, SQL details, secrets, or stack traces to ordinary users.
+
+## 6. Supabase Row Level Security and database permissions
+
+Inspect the actual schema and policies before making changes.
+
+For every table in an exposed schema that contains user or financial data:
+
+- Verify whether RLS is enabled.
+- Review `SELECT`, `INSERT`, `UPDATE`, and `DELETE` permissions independently.
+- Review applicable PostgreSQL grants as well as RLS policies.
+- Ensure policies reflect the actual ownership and organization model.
+- Verify that users cannot modify ownership fields to gain access to another user's records.
+- Review database functions and views for privilege-escalation risks.
+- Review Storage policies if files are stored in Supabase Storage.
+
+If the application supports multiple organizations, enforce tenant isolation consistently.
+
+A user belonging to Organization A must not read, modify, export, or delete Organization B's data without explicit, validated authorization.
+
+Never trust a `user_id`, `organization_id`, or role supplied by the browser without validating it against the authenticated identity and authoritative database relationships.
+
+Do not create broad policies that grant every authenticated user access to all records.
+
+Do not assume enabling RLS automatically revokes all unsafe database privileges.
+
+Use least-privilege permissions.
+
+## 7. Supabase keys and database connectivity
+
+Inspect all environment variables, database clients, and connection configurations.
+
+Verify that:
+
+- Public browser code uses only keys explicitly intended for public use.
+- The Supabase service-role key never appears in client bundles or `NEXT_PUBLIC_*` variables.
+- Privileged clients are created only in trusted server-side modules.
+- Server-only modules cannot accidentally be imported into client components.
+- Secrets are stored in the deployment environment or an appropriate secret manager.
+- Production credentials are not committed to source control.
+- Error logs do not disclose connection strings or credentials.
+- Database access uses the supported connection method for the runtime and deployment environment.
+
+Check the project's use of direct PostgreSQL connections, Supabase client libraries, connection pooling, and serverless execution constraints.
+
+Use a supported pooling configuration where appropriate. Do not introduce unnecessary connection pools or duplicate database access layers.
+
+Do not disable TLS certificate validation or weaken database transport security to resolve connection errors.
+
+Do not print secrets to demonstrate that connectivity works.
+
+### Database reliability
+
+Verify:
+
+- Environment-specific database configuration
+- Connection error handling
+- Timeouts
+- Transaction boundaries
+- Retry behavior for safe, idempotent operations
+- Migration consistency
+- Schema compatibility
+- Database constraints
+- Indexes for important query patterns
+- Pagination and query limits
+- Handling of partial failures
+
+Do not retry non-idempotent financial operations blindly.
+
+Do not run destructive migrations, reset production databases, or delete existing data.
+
+Create reviewed migrations for required changes and provide rollback instructions where practical.
+
+## 8. Data integrity and sensitive operations
+
+Audit operations that change invoices, receivables, collection statuses, and license entitlements.
+
+Verify that:
+
+- Financial values are validated on the server.
+- Amounts use appropriate decimal-safe representations.
+- Currency and date fields are validated.
+- Duplicate imports are handled predictably.
+- Updates cannot silently overwrite unrelated data.
+- Sensitive actions are authorized.
+- Important state changes are traceable.
+- Exports respect the same access restrictions as ordinary reads.
+- Error handling does not expose customer records.
+
+Where a privileged database function or transaction is required, enforce authorization inside the trusted execution boundary.
+
+Use audit logs for sensitive changes without copying unnecessary personal or financial data into the logs.
+
+Do not silently change the product's existing scoring rules or financial calculations while fixing security.
+
+## 9. Security testing
+
+Add or execute tests covering:
+
+1. Unauthenticated access to protected APIs.
+2. Access to another user's records.
+3. Cross-organization access attempts.
+4. Unauthorized database updates.
+5. Unauthorized deletion and export.
+6. Attempts to alter ownership fields.
+7. Invalid or expired sessions.
+8. Privileged operations called directly through APIs.
+9. Malformed CSV data and invalid input.
+10. Sensitive information in error responses and logs.
+11. Environment variables and accidental secret exposure.
+12. Relevant Storage access controls.
+
+Use synthetic test accounts and non-sensitive test data.
+
+Never perform destructive security tests against production customer data.
+
+**Acceptance criteria:**
+
+- Authorization is enforced server-side and, where applicable, in PostgreSQL.
+- RLS and grants are reviewed and tested.
+- No service-role secret is exposed to browser code.
+- Cross-user and cross-tenant access tests fail safely.
+- Database changes are reviewed and reversible.
+- No security claim is made without supporting evidence.
+
+---
+
+# WORKSTREAM 3 — OPERATIONAL, SERVICE-SPECIFIC SEO
+
+## 10. SEO objective and positioning
+
+Implement an operational SEO foundation for Revenue Recovery OS as an international B2B SaaS focused on overdue receivables, receivables prioritization, and collection workflows.
+
+The SEO strategy must attract qualified finance and operations professionals—not merely generate traffic.
+
+Use this core positioning as a hypothesis to validate against the actual product:
+
+**Prioritize overdue receivables. Know what needs attention next.**
+
+Do not claim that the product guarantees collections, reduces DSO by a specific percentage, uses AI, or outperforms competitors unless the implementation and evidence support those claims.
+
+First inspect the actual public routes, domain configuration, product features, and existing metadata.
+
+Do not invent the production domain. Use the verified canonical domain from project configuration or deployment settings. If it is unknown, identify it as a required configuration item.
+
+## 11. Technical SEO implementation
+
+Implement and verify the following using the installed Next.js version and the existing routing architecture.
+
+### Page metadata
+
+For every intended indexable public page, configure:
+
+- Unique page title
+- Accurate meta description
+- Canonical URL
+- Appropriate Open Graph metadata
+- Social-sharing image where useful
+- Correct language metadata
+- Descriptive headings
+- Semantic HTML
+- Appropriate favicon and site identity
+
+Use the supported Next.js Metadata API or the equivalent convention for the current router.
+
+Avoid duplicate titles and generic descriptions repeated across every route.
+
+### Crawling and indexing
+
+Implement or verify:
+
+- `robots.txt`
+- XML sitemap
+- Canonical URL consistency
+- Crawlable internal links
+- Correct HTTP status codes
+- Redirect behavior
+- Internal link integrity
+- Indexability of intended public pages
+- Exclusion of authenticated application pages from public indexing
+- No accidental `noindex` on important marketing pages
+- No exposed staging environment competing with production
+
+Include only intended canonical public URLs in the sitemap.
+
+Do not include private dashboards, account-specific pages, sensitive data endpoints, or temporary routes.
+
+Remember that `robots.txt` is not an access-control mechanism. Sensitive pages must be protected through authentication and authorization.
+
+Use permanent redirects only when a URL has genuinely moved. Avoid redirect chains and unnecessary URL variants.
+
+### Structured data
+
+Use valid structured data only when it describes visible, accurate page content.
+
+Evaluate appropriate types such as:
+
+- `Organization`
+- `SoftwareApplication`
+- `WebSite`
+- `BreadcrumbList`
+- `Article`, for genuine editorial content
+
+Do not fabricate review scores, testimonials, pricing, certifications, awards, or company details.
+
+Validate generated structured data and report actual validation results.
+
+## 12. SEO architecture for this SaaS
+
+Assess whether these candidate routes are justified by the existing product and real search intent:
+
+- `/` — Main product proposition
+- `/accounts-receivable` — Core product category
+- `/invoice-prioritization` — Receivables prioritization workflow
+- `/ar-aging-report` — Receivables aging use case
+- `/resources/ar-aging-template` — Useful spreadsheet resource
+- `/resources/overdue-invoice-calculator` — Functional calculator
+- `/pricing` — Actual pricing, if available
+- `/security` — Verified security practices
+
+Do not automatically create all of these pages.
+
+Create a page only if it provides distinct value, matches a relevant audience need, and does not duplicate an existing page.
+
+For each implemented page, define:
+
+- Target audience
+- Search intent
+- Primary topic
+- Unique value
+- Primary CTA
+- Relevant internal links
+- Indexability requirements
+
+Do not generate thin pages or interchangeable country-specific landing pages.
+
+If multilingual support is introduced, use distinct URLs and correct `hreflang` annotations. Do not publish unreviewed machine-translated content.
+
+## 13. Service-specific keyword research
+
+Investigate keyword candidates such as:
+
+- Accounts receivable software
+- Accounts receivable automation
+- Accounts receivable software for small businesses
+- Invoice collection software
+- Overdue invoice management
+- Accounts receivable aging report
+- How to prioritize overdue invoices
+- Overdue invoice follow-up workflow
+- Receivables prioritization tools
+
+These are research candidates, not confirmed search opportunities.
+
+Where research tools are available, record:
+
+- Keyword and search intent
+- Target country and language
+- Actual volume estimates and their source
+- Trend and measurement period
+- Organic competition
+- Paid advertising competition, separately
+- Current search results
+- Relevant competitors
+- Commercial relevance
+- Proposed page or content asset
+- Confidence in the evidence
+
+Do not invent search volumes or claim that a keyword is easy to rank for without evidence.
+
+Do not confuse paid advertising competition with organic ranking difficulty.
+
+Prioritize keywords that match the product's actual functionality and target customers.
+
+## 14. Content quality and trust
+
+Develop a small, credible set of useful resources that supports the product's value proposition.
+
+Potential resources:
+
+- Accounts receivable aging spreadsheet template
+- Overdue receivables calculator
+- Guide to prioritizing overdue invoices
+- Explanation of the product's scoring methodology, if publicly appropriate
+- Practical CSV preparation guide
+
+Each resource must work as described, contain original and useful information, and link naturally to relevant product pages.
+
+Do not publish empty templates, non-functional calculators, generic AI-generated articles, or fabricated customer success stories.
+
+Ensure public security and privacy pages reflect actual system behavior.
+
+## 15. SEO monitoring and operational verification
+
+Prepare the site for Google Search Console.
+
+Document the required steps to:
+
+- Verify the production domain
+- Submit the sitemap
+- Inspect important public URLs
+- Review indexing status
+- Monitor search queries, impressions, clicks, and click-through rate
+- Investigate crawling and indexing errors
+
+Instrument relevant acquisition events if analytics is already available or can be safely added.
+
+Do not place personal financial data, invoice records, authentication tokens, or customer names in analytics events.
+
+Do not claim that Google has indexed a page simply because its sitemap exists.
+
+Do not promise specific rankings or traffic.
+
+**Acceptance criteria:**
+
+- Important public pages have correct metadata.
+- Canonical URLs resolve to the intended production domain.
+- Sitemap and robots rules are valid.
+- Private application routes remain protected.
+- Internal links work.
+- Structured data is accurate where implemented.
+- The SEO configuration is verified through tests or documented inspection.
+- Search Console setup requirements are documented.
+
+---
+
+# WORKSTREAM 4 — PERFORMANCE, ACCESSIBILITY, AND REGRESSION PREVENTION
+
+## 16. Performance
+
+Measure actual performance before and after changes where tooling permits.
+
+Investigate:
+
+- JavaScript bundle size
+- Unnecessary client-side rendering
+- Large tables and expensive rerenders
+- Image and font loading
+- Repeated network requests
+- Database query performance
+- Layout shifts
+- Third-party scripts
+- Responsive rendering behavior
+
+Use these Core Web Vitals targets:
+
+- LCP ≤ 2.5 seconds
+- INP ≤ 200 milliseconds
+- CLS ≤ 0.1
+
+Treat them as performance targets, not ranking guarantees.
+
+Do not remove important functionality just to improve synthetic scores.
+
+## 17. Accessibility
+
+Check:
+
+- Keyboard navigation
+- Visible focus indicators
+- Form labels
+- Accessible validation errors
+- Semantic headings
+- Color contrast
+- Screen-reader labels
+- Modal focus behavior
+- Tooltips and dropdowns
+- Responsive text scaling
+- Reduced-motion preferences
+
+Fix defects that prevent users from navigating or completing core workflows.
+
+## 18. Regression testing
+
+Run the existing project checks and add tests where necessary.
+
+At minimum, verify:
+
+- Production build
+- Type checking
+- Linting
+- Existing tests
+- Core authenticated workflows
+- Responsive layouts
+- Button and text overflow
+- CSV import
+- Protected API routes
+- Database access restrictions
+- SEO metadata
+- Sitemap and robots behavior
+- Internal links
+- Critical accessibility interactions
+
+Do not mark tests as passed unless they were actually executed.
+
+Document all failures and environmental blockers.
+
+---
+
+# IMPLEMENTATION PROCESS
+
+Follow this order:
+
+### Phase A — Baseline and audit
+
+Inspect the repository, run existing checks, map routes, identify overflow defects, review security boundaries, and inspect SEO configuration.
+
+Deliver a prioritized defect list with file references and evidence.
+
+### Phase B — Critical security fixes
+
+Fix confirmed high-risk authentication, authorization, secret-handling, database-access, and tenant-isolation issues before making nonessential changes.
+
+### Phase C — Responsive UI remediation
+
+Correct shared layout primitives and reusable components first, then repair individual screens. Test all required viewport widths.
+
+### Phase D — SEO implementation
+
+Implement the verified technical SEO foundations, optimize existing public pages, and create only justified service-specific pages.
+
+### Phase E — Regression verification
+
+Run build, lint, type checks, responsive tests, security tests, and SEO checks.
+
+Recheck all three workstreams after the final changes.
+
+### Phase F — Final report
+
+Produce a clear report containing:
+
+1. Issues discovered
+2. Root causes
+3. Files modified
+4. Changes implemented
+5. Tests executed and actual results
+6. Before-and-after measurements where available
+7. Security findings and residual risks
+8. SEO configuration and remaining setup requirements
+9. Database migrations and rollback guidance
+10. Items requiring manual intervention
+
+Classify every item as:
+
+- Completed and verified
+- Implemented but not fully verified
+- Not implemented
+- Blocked by missing access or information
+
+Do not claim production deployment, successful indexing, complete security, or full responsiveness without evidence.
+
+---
+
+# FINAL ACCEPTANCE STANDARD
+
+The task is complete only when the application has been materially improved across all three required workstreams:
+
+**Responsive UI**
+- No unintended page-level horizontal overflow at tested widths.
+- Text fits within buttons and components.
+- Essential workflows remain usable across supported devices.
+
+**Security**
+- Authentication and authorization are validated on the server.
+- Database permissions and RLS policies are reviewed and tested.
+- Sensitive data is isolated by user and organization where applicable.
+- Privileged keys remain server-side.
+- Unauthorized access attempts fail safely.
+
+**SEO**
+- Public pages have accurate metadata and canonical URLs.
+- Sitemap and robots configuration are correct.
+- Private pages remain protected.
+- Internal links and relevant structured data are validated.
+- The website is prepared for real search performance monitoring.
+
+**Reliability**
+- Existing business logic is preserved.
+- Critical tests pass or failures are explicitly documented.
+- No unapproved destructive database operation is performed.
+- Every completion claim is supported by evidence.
+
+Execute this work with engineering discipline. Fix root causes rather than applying superficial patches. Preserve valid functionality. Prefer secure, maintainable, testable solutions over rushed cosmetic changes.

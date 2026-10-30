@@ -1,0 +1,6 @@
+{
+  "name": "Revenue Recovery OS",
+  "description": "Turn scattered invoice data into clear priorities, structured collection actions and financial visibility with Revenue Recovery OS.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

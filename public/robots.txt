@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /accounts-receivable
+Allow: /invoice-prioritization
+Allow: /ar-aging-report
+Allow: /resources/ar-aging-template
+Allow: /resources/overdue-invoice-calculator
+Allow: /resources/receivables-management-guide
+Allow: /pricing
+Allow: /security
+Disallow: /app/
+Disallow: /api/
+
+Sitemap: https://ais-dev-xnl2yncmot7y7ur6qqt2yz-429114080415.europe-west2.run.app/sitemap.xml
