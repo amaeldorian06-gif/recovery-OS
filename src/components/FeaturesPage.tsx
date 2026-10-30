@@ -1,177 +1,147 @@
 import React from 'react';
-import { 
-  ArrowRight, 
-  Layers, 
-  Sliders, 
-  CheckCircle2, 
-  FileText, 
-  ShieldCheck, 
-  UploadCloud, 
-  Sparkles,
-  ArrowUpRight
-} from 'lucide-react';
-import { SectionShareBadge } from './LandingPage';
+import { FileSpreadsheet, Calculator, Shield, HardDrive, ArrowRight, LayoutDashboard, Archive } from 'lucide-react';
 
 interface FeaturesPageProps {
-  onStartSignUp: () => void;
-  onGoToSignIn: () => void;
-  onBackToLanding: () => void;
-  onNavigateTab: (tab: 'calculator' | 'template') => void;
+  onNavigate: (path: string) => void;
 }
 
-export const FeaturesPage: React.FC<FeaturesPageProps> = ({
-  onStartSignUp,
-  onGoToSignIn,
-  onBackToLanding,
-  onNavigateTab,
-}) => {
+/**
+ * Présentation des fonctionnalités — univers « dark structuré »,
+ * ton clair et factuel, sans promesses non vérifiées.
+ */
+export const FeaturesPage: React.FC<FeaturesPageProps> = ({ onNavigate }) => {
+  const sections = [
+    {
+      id: 'pilotage',
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      title: 'Tableau de pilotage quotidien',
+      body: 'Quatre indicateurs vivants — encours total, impayés hors litiges, litiges, encaissements du jour — recalculés à chaque écriture. Le DSO courant et les alertes multi-devises s’affichent en clair, sans arrondi trompeur.',
+      points: [
+        'Recalcul immédiat après import, encaissement ou engagement',
+        'Rappels d’engagements de règlement à échoir',
+        'Journal des opérations récentes traçable',
+      ],
+    },
+    {
+      id: 'import',
+      icon: <FileSpreadsheet className="w-5 h-5" />,
+      title: 'Import CSV de vos factures clients',
+      body: 'Déposez l’export de votre ERP ou de votre compta. Colonnes françaises et anglaises reconnues, montants « 1 234,56 » interprétés correctement, aperçu ligne à ligne avant validation.',
+      points: [
+        'Trois modes : fusion, mise à jour, remplacement assisté',
+        'Lignes invalides rejetées avec motif — jamais perdues en silence',
+        'Doublons de facture détectés avant écriture',
+        'Modèle CSV FR téléchargeable en un clic',
+      ],
+    },
+    {
+      id: 'analyse',
+      icon: <Calculator className="w-5 h-5" />,
+      title: 'Balance âgée, scoring et courbe CRF',
+      body: 'Chaque créance est positionnée dans une tranche d’impayé (1-30, 31-60, 61-90, 90+) et reçoit un score de risque de 0 à 100 basé sur l’ancienneté, la concentration client, les engagements tenus ou rompus et les litiges.',
+      points: [
+        'Détail expliqué du score par facture (audit drawer)',
+        'Courbe CRF de recouvrement interne — estimation, pas une provision IFRS 9 / CECL',
+        'Calculateur what-if : simulatez l’impact d’un encaissement',
+      ],
+    },
+    {
+      id: 'actions',
+      icon: <Shield className="w-5 h-5" />,
+      title: 'Journal des relances et engagements',
+      body: 'Chaque relance, appel ou mise en demeure est journalisée avec son canal, ses notes structurées et sa date de suivi. Les promesses de paiement sont suivies jusqu’à leur tenue ou leur rupture — qui pèse sur le score client.',
+      points: [
+        'Actions regroupées par facture et par client',
+        'Engagements rompus remontés automatiquement',
+        'Litiges visibles et exclus de la balance âgée',
+      ],
+    },
+    {
+      id: 'sauvegarde',
+      icon: <Archive className="w-5 h-5" />,
+      title: 'Sauvegarde et restauration vérifiées',
+      body: 'Export JSON de l’intégralité de l’espace (factures, encaissements, engagements, litiges, actions, historique, paramètres) avec empreinte de contrôle. La restauration passe par un aperçu et une confirmation explicite.',
+      points: [
+        'Empreinte SHA-256 du contenu exporté',
+        'Aperçu avant remplacement — aucune restauration à l’aveugle',
+        'Confirmation « RESTAURER » exigée pour les opérations destructrices',
+      ],
+    },
+    {
+      id: 'souverainete',
+      icon: <HardDrive className="w-5 h-5" />,
+      title: 'Souveraineté des données par conception',
+      body: 'Vos données vivent dans IndexedDB de votre navigateur. Aucun serveur n’est contacted pour les stocker ou les lire. Le mode démonstration s’appuie sur un jeu de données d’exemple éphémère qui ne touche jamais à votre portefeuille réel.',
+      points: [
+        'Aucun compte obligatoire pour utiliser l’application localement',
+        'Hors ligne une fois chargée',
+        'Séparation stricte entre licence et données financières',
+      ],
+    },
+  ];
+
   return (
-    <div className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-20 text-[#F4F7FB]">
-      {/* Header */}
-      <div className="text-center max-w-3xl mx-auto space-y-4">
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-[#10143A]/60 text-xs font-mono text-[#38BDF8]">
-            <Sparkles className="w-3.5 h-3.5 text-[#D946EF]" />
-            <span>Product Architecture & Specifications</span>
-          </div>
-          <SectionShareBadge sectionId="features" title="Features & Architecture" />
-        </div>
-        <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#F4F7FB]">
-          Every module designed for zero ambiguity.
+    <div className="min-h-full text-[#E6EAF2]">
+      <main className="max-w-5xl mx-auto px-5 py-14">
+        <p className="text-xs uppercase tracking-[0.2em] text-[#38BDF8] font-semibold mb-3">Fonctionnalités</p>
+        <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-4">
+          Tout le cycle de recouvrement, dans une seule interface sobre
         </h1>
-        <p className="text-base text-[#9AAAC0]">
-          Discover how Revenue Recovery OS replaces manual spreadsheet sorting with deterministic algorithms, RFC 4180 parsing, and ASC 310 compliance.
-        </p>
-      </div>
-
-      {/* Feature Deep Dive 1: Ingestion Engine */}
-      <div className="rounded-2xl border border-white/10 bg-[#0B102E]/60 p-8 sm:p-10 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#2563EB]/20 border border-[#2563EB]/30 flex items-center justify-center text-[#38BDF8]">
-              <UploadCloud className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[10px] font-mono text-[#38BDF8] uppercase tracking-wider">Module 01</span>
-              <h2 className="text-xl font-bold text-[#F4F7FB]">Intelligent Ingestion & Sanitization Engine</h2>
-            </div>
-          </div>
-          <span className="text-xs px-2.5 py-1 rounded font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            RFC 4180 Compliant
-          </span>
-        </div>
-
-        <p className="text-sm text-[#9AAAC0] leading-relaxed">
-          Accounting exports from ERPs frequently present inconsistent date schemes, comma-separated decimals, and unescaped quote delimiters. Revenue Recovery OS normalizes this data client-side before committing it to your tenant partition.
+        <p className="text-[#9AAAC0] max-w-2xl leading-relaxed mb-12">
+          De l’import de vos factures au journal des relances : chaque module est conçu pour la fiabilité
+          chiffrée, la traçabilité et la confidentialité. Voici exactement ce que fait le produit — rien de plus.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-xs">
-          <div className="p-4 rounded-xl bg-[#070B20] border border-white/5 space-y-2">
-            <div className="font-bold text-[#F4F7FB]">Auto-Column Mapping</div>
-            <p className="text-[#9AAAC0]">
-              Detects standard English and French accounting headers (Facture, Client, Échéance, Montant, Solde, Reste dû).
-            </p>
-          </div>
-          <div className="p-4 rounded-xl bg-[#070B20] border border-white/5 space-y-2">
-            <div className="font-bold text-[#F4F7FB]">CSV Formula Injection Defense</div>
-            <p className="text-[#9AAAC0]">
-              Prefixes dangerous leading characters (<code className="text-[#D946EF]">=, +, -, @</code>) with single quotes to shield spreadsheet viewers from remote command execution.
-            </p>
-          </div>
-          <div className="p-4 rounded-xl bg-[#070B20] border border-white/5 space-y-2">
-            <div className="font-bold text-[#F4F7FB]">Pre-Commit Validation</div>
-            <p className="text-[#9AAAC0]">
-              Visual preview screen surfaces format anomalies, missing fields, and duplicates before any ledger modification.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Feature Deep Dive 2: Explainable Scoring */}
-      <div className="rounded-2xl border border-white/10 bg-[#0B102E]/60 p-8 sm:p-10 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#D946EF]/20 border border-[#D946EF]/30 flex items-center justify-center text-[#D946EF]">
-              <Sliders className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[10px] font-mono text-[#D946EF] uppercase tracking-wider">Module 02</span>
-              <h2 className="text-xl font-bold text-[#F4F7FB]">Multi-Factor Explainable Risk Scoring</h2>
-            </div>
-          </div>
-          <span className="text-xs px-2.5 py-1 rounded font-mono bg-[#D946EF]/10 text-[#D946EF] border border-[#D946EF]/20">
-            Deterministic Logic
-          </span>
+        <div className="space-y-5">
+          {sections.map((s, idx) => (
+            <section key={s.id} className="rounded-xl border border-white/10 bg-[#0B0F17] p-6 md:p-8 grid md:grid-cols-[64px_1fr] gap-5">
+              <div className="flex md:flex-col items-center gap-3">
+                <span className="text-xs font-mono text-[#6B7D98]">{String(idx + 1).padStart(2, '0')}</span>
+                <div className="w-11 h-11 rounded-xl bg-[#2563EB]/15 border border-[#2563EB]/25 flex items-center justify-center text-[#38BDF8]">
+                  {s.icon}
+                </div>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold mb-2">{s.title}</h2>
+                <p className="text-sm text-[#9AAAC0] leading-relaxed mb-4">{s.body}</p>
+                <ul className="space-y-1.5">
+                  {s.points.map(p => (
+                    <li key={p} className="text-sm flex items-start gap-2.5">
+                      <span className="text-[#38C995] mt-1">▸</span>
+                      <span className="text-[#C7D2E5]">{p}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          ))}
         </div>
 
-        <p className="text-sm text-[#9AAAC0] leading-relaxed">
-          Standard credit management often fails because collectors call whoever is at the top of an alphabetical or chronological list. Our scoring engine computes a composite risk score between 0 and 100 with clear human-readable factors.
-        </p>
+        <section className="mt-12 rounded-xl border border-[#E9AE57]/25 bg-[#E9AE57/5] p-6">
+          <h3 className="font-bold text-[#E9AE57] mb-2 flex items-center gap-2">
+            <Calculator className="w-4 h-4" /> Ce que le produit ne prétend pas faire
+          </h3>
+          <ul className="text-sm text-[#C7D2E5] space-y-1.5">
+            <li>• La courbe CRF est une heuristique interne de recouvrement — ce n’est pas une provision IFRS 9 ni CECL.</li>
+            <li>• La licence locale est une protection honnête de commercialisation, pas un verrou technique inviolable.</li>
+            <li>• Aucune donnée financière n’est hébergée : la déconnexion emporte l’accès, la sauvegarde reste votre affaire.</li>
+          </ul>
+        </section>
 
-        <div className="p-4 rounded-xl bg-[#070B20] border border-white/5 font-mono text-xs text-[#38BDF8] space-y-1">
-          <div>RiskScore = (DaysPastDue_Weight × 40) + (PortfolioShare_Weight × 30) + DisputePenalty(+25) - PromiseRelief(-15)</div>
-          <div className="text-[11px] text-[#6B7D98]">Tiers: Critical (Score &ge; 75), High (&ge; 50), Medium (&ge; 25), Low (&lt; 25)</div>
-        </div>
-      </div>
-
-      {/* Feature Deep Dive 3: Financial Calculations & Tools */}
-      <div className="rounded-2xl border border-white/10 bg-[#0B102E]/60 p-8 sm:p-10 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#38BDF8]/20 border border-[#38BDF8]/30 flex items-center justify-center text-[#38BDF8]">
-              <FileText className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[10px] font-mono text-[#38BDF8] uppercase tracking-wider">Module 03 & 04</span>
-              <h2 className="text-xl font-bold text-[#F4F7FB]">Accounting Standards & Financial Drag Analytics</h2>
-            </div>
-          </div>
-          <span className="text-xs px-2.5 py-1 rounded font-mono bg-[#2563EB]/10 text-[#38BDF8] border border-[#2563EB]/20">
-            ASC 310 / CECL Aligned
-          </span>
-        </div>
-
-        <p className="text-sm text-[#9AAAC0] leading-relaxed">
-          Equip your finance team with auditor-ready aging matrices and real-time calculators to quantify liquidity cost and bad debt reserve requirements.
-        </p>
-
-        <div className="flex flex-wrap gap-4 pt-2">
+        <div className="mt-12 text-center">
           <button
-            onClick={() => onNavigateTab('calculator')}
-            className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-[#F4F7FB] flex items-center gap-2 cursor-pointer transition-colors"
+            onClick={() => onNavigate('/inscription')}
+            className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] font-bold"
           >
-            <span>Launch Financial Calculator</span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-[#38BDF8]" />
-          </button>
-          <button
-            onClick={() => onNavigateTab('template')}
-            className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-[#F4F7FB] flex items-center gap-2 cursor-pointer transition-colors"
-          >
-            <span>Explore Spreadsheet Template</span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-[#38BDF8]" />
+            Démarrer l’essai de 14 jours
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
-      </div>
+      </main>
 
-      {/* Conversion Banner */}
-      <div className="text-center space-y-4 pt-6">
-        <h3 className="text-2xl font-bold text-[#F4F7FB]">Ready to deploy Revenue Recovery OS?</h3>
-        <div className="flex justify-center gap-4">
-          <button
-            onClick={onStartSignUp}
-            className="px-6 py-3 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold shadow-lg shadow-[#2563EB]/30 transition-colors cursor-pointer flex items-center gap-2"
-          >
-            <span>Create your workspace</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={onBackToLanding}
-            className="px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-[#9AAAC0] hover:text-white transition-colors cursor-pointer"
-          >
-            ← Back to Overview
-          </button>
-        </div>
-      </div>
+      <footer className="border-t border-white/10 py-8 text-center text-xs text-[#6B7D98]">
+        Revenue Recovery OS · Recouvrement d’impayés souverain
+      </footer>
     </div>
   );
 };

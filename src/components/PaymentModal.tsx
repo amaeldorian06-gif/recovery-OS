@@ -1,127 +1,123 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { InvoiceRecord } from '../types';
-import { formatCurrency } from '../utils/financial';
-import { DollarSign, X, CheckCircle2 } from 'lucide-react';
+import { parseAmount } from '../utils/money';
+import { X, DollarSign, AlertTriangle } from 'lucide-react';
 
 interface PaymentModalProps {
   invoice: InvoiceRecord;
+  onSubmit: (invoice: InvoiceRecord, amount: number, date: string, method: string, reference: string) => void;
   onClose: () => void;
-  onRecordPayment: (invoiceId: string, amount: number, reference: string, date: string) => void;
 }
 
-export const PaymentModal: React.FC<PaymentModalProps> = ({
-  invoice,
-  onClose,
-  onRecordPayment,
-}) => {
-  const [amount, setAmount] = useState<number>(invoice.outstandingAmount);
+/**
+ * Enregistrement d'un encaissement : montant contrôlé sur l'encours,
+ * référence et mode de paiement pour le journal financier.
+ */
+export const PaymentModal: React.FC<PaymentModalProps> = ({ invoice, onSubmit, onClose }) => {
+  const [amount, setAmount] = useState('');
+  const [amountError, setAmountError] = useState('');
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [method, setMethod] = useState('virement');
   const [reference, setReference] = useState('');
-  const [paymentDate, setPaymentDate] = useState('2026-10-29');
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (amount <= 0) {
-      alert('Payment amount must be greater than $0');
+    const parsed = parseAmount(amount);
+    if (!parsed.ok) {
+      setAmountError(parsed.reason ?? 'Montant illisible.');
       return;
     }
-    onRecordPayment(invoice.id, amount, reference || 'Bank Wire / ACH Settlement', paymentDate);
-    onClose();
+    if (parsed.value <= 0) {
+      setAmountError('Le montant doit être strictement positif.');
+      return;
+    }
+    if (parsed.value > invoice.outstandingAmount + 0.005) {
+      setAmountError(`Le montant dépasse l'encours restant (${invoice.outstandingAmount.toFixed(2)} €).`);
+      return;
+    }
+    setAmountError('');
+    onSubmit(invoice, parsed.value, paymentDate, method, reference.trim());
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
-        <div className="px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <DollarSign className="w-5 h-5 text-emerald-400 shrink-0" />
-            <div className="min-w-0">
-              <h3 className="text-sm font-bold text-slate-100 truncate">Record Confirmed Payment</h3>
-              <p className="text-xs text-slate-400 truncate">{invoice.customerName} • Inv #{invoice.invoiceNumber}</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-200">
-            <X className="w-5 h-5" />
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={onClose}>
+      <div
+        className="bg-[#111726] border border-white/10 rounded-xl p-5 w-full max-w-sm shadow-2xl"
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Enregistrer un encaissement"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-[#38C995]" />
+            Encaissement — {invoice.invoiceNumber}
+          </h3>
+          <button onClick={onClose} className="text-[#6B7D98] hover:text-white" aria-label="Fermer">
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-4 text-xs">
+        <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 mb-4 text-xs">
+          <p className="text-[#9AAAC0]">Client : <span className="text-white font-medium">{invoice.customerName}</span></p>
+          <p className="text-[#9AAAC0] mt-0.5">Encours restant : <span className="text-[#E9AE57] font-mono font-bold">{invoice.outstandingAmount.toFixed(2)} €</span></p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="font-semibold text-slate-300">Payment Amount Received</label>
-              <span className="text-slate-500">
-                Outstanding: {formatCurrency(invoice.outstandingAmount, invoice.currency)}
-              </span>
+            <label className="text-xs text-[#9AAAC0] block mb-1">Montant encaissé (€) *</label>
+            <input
+              type="text" inputMode="decimal" required autoFocus
+              value={amount}
+              onChange={e => { setAmount(e.target.value); setAmountError(''); }}
+              placeholder="1500,50"
+              className={`w-full bg-[#0B0F17] border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none ${amountError ? 'border-red-500' : 'border-white/10 focus:border-[#38C995]'}`}
+            />
+            {amountError && <p className="text-xs text-red-400 mt-1 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> {amountError}</p>}
+          </div>
+          <div>
+            <label className="text-xs text-[#9AAAC0] block mb-1">Date de l'encaissement *</label>
+            <input
+              type="date" required value={paymentDate} onChange={e => setPaymentDate(e.target.value)}
+              className="w-full bg-[#0B0F17] border border-white/10 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#38C995]"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-[#9AAAC0] block mb-1">Mode de paiement</label>
+              <select value={method} onChange={e => setMethod(e.target.value)}
+                className="w-full bg-[#0B0F17] border border-white/10 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#38C995]">
+                <option value="virement">Virement</option>
+                <option value="cheque">Chèque</option>
+                <option value="carte">Carte</option>
+                <option value="especes">Espèces</option>
+                <option value="autre">Autre</option>
+              </select>
             </div>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+            <div>
+              <label className="text-xs text-[#9AAAC0] block mb-1">Référence (N° opération)</label>
               <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                max={invoice.outstandingAmount}
-                value={amount}
-                onChange={e => setAmount(parseFloat(e.target.value) || 0)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-3 py-2 text-slate-100 font-mono text-sm focus:outline-none focus:border-indigo-500"
-                required
+                type="text" value={reference} onChange={e => setReference(e.target.value)}
+                placeholder="Ex. VIR-2026-0042"
+                className="w-full bg-[#0B0F17] border border-white/10 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#38C995]"
               />
             </div>
-            <div className="flex items-center space-x-2 mt-1.5 flex-wrap gap-1">
-              <button
-                type="button"
-                onClick={() => setAmount(invoice.outstandingAmount)}
-                className="px-2 py-0.5 rounded bg-slate-800 text-[11px] text-slate-300 hover:text-white"
-              >
-                Pay in Full (100%)
-              </button>
-              <button
-                type="button"
-                onClick={() => setAmount(Math.round((invoice.outstandingAmount / 2) * 100) / 100)}
-                className="px-2 py-0.5 rounded bg-slate-800 text-[11px] text-slate-300 hover:text-white"
-              >
-                50% Installment
-              </button>
-            </div>
           </div>
-
-          <div>
-            <label className="block font-semibold text-slate-300 mb-1">Payment Method / Remittance Reference</label>
-            <input
-              type="text"
-              placeholder="e.g. Wire Ref #883921 / Check #4401"
-              value={reference}
-              onChange={e => setReference(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label className="block font-semibold text-slate-300 mb-1">Settlement Date</label>
-            <input
-              type="date"
-              value={paymentDate}
-              onChange={e => setPaymentDate(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-indigo-500"
-            />
-          </div>
-
-          <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-lg text-emerald-300 text-[11px]">
-            Confirmed payments directly increase collected cash metrics and reduce balance exposure.
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-3 border-t border-slate-800">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-3 py-2 sm:py-1.5 rounded-lg text-slate-400 hover:text-slate-200 text-center"
-            >
-              Cancel
+          <p className="text-[11px] text-[#9AAAC0] bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+            L'encaissement est écrit dans le journal financier ; le reste dû et les indicateurs sont recalculés immédiatement.
+          </p>
+          <div className="flex gap-2 pt-1">
+            <button type="button" onClick={onClose} className="flex-1 bg-white/5 border border-white/10 rounded-lg py-2.5 text-sm font-semibold hover:bg-white/10">
+              Annuler
             </button>
-            <button
-              type="submit"
-              className="px-4 py-2 sm:py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center justify-center space-x-1 shadow"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Confirm & Record Receipt</span>
+            <button type="submit" className="flex-1 bg-[#38C995]/15 border border-[#38C995]/30 text-[#38C995] rounded-lg py-2.5 text-sm font-semibold hover:bg-[#38C995]/25">
+              Enregistrer
             </button>
           </div>
         </form>
