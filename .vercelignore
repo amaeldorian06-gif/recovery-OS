@@ -1,0 +1,6 @@
+# Fichiers inutiles au build : réduit le poids d'upload Vercel.
+/*.png
+/.aistudio
+/metadata.json
+/docs
+/README.md

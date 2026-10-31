@@ -82,14 +82,15 @@ npm run build                           # build statique → dist/
 ## Procédure de déploiement (Vercel)
 
 ```bash
-npm run typecheck && npm test && npm run build   # 1. vérifications
-npx vercel --prod                                 # 2. déploiement (ou import Git)
+npm run check     # typecheck + 59 tests + build
+npx vercel --prod # ou import du dépôt GitHub dans Vercel
 ```
 
-- `vercel.json` assure la réécriture SPA (toutes les routes → `index.html`), les en-têtes de sécurité et le cache immutable des assets.
-- HTTPS est fourni par Vercel par défaut.
-- Après déploiement, remplacez `https://recovery-os.vercel.app` par votre domaine réel dans `index.html`, `public/robots.txt` et `public/sitemap.xml`.
-- **Aucune variable d'environnement, aucune base de données, aucun serveur Node** n'est requis en production.
+- **Le projet Vercel doit pointer sur `recovery-OS`**, pas sur un autre dépôt. Procédure complète et diagnostic : [`docs/DEPLOIEMENT-VERCEL.md`](docs/DEPLOIEMENT-VERCEL.md).
+- Réglages : Framework **Vite**, Root Directory **`.`**, Build `npm run build`, Output `dist`, Node **22**.
+- `vercel.json` déclare des routes SPA explicites, les en-têtes de sécurité et le cache immutable des assets.
+- Domaine : une seule variable, `VITE_SITE_URL` (ex. `https://mon-domaine.fr`), injectée au build dans `index.html`, `robots.txt` et `sitemap.xml`. Aucune édition manuelle de fichier.
+- **Aucune base de données ni serveur Node** n'est requis en production. La seule variable d'environnement est `VITE_SITE_URL`.
 
 ### Tests multi-navigateurs (manuel)
 
@@ -100,9 +101,8 @@ Le stockage utilise IndexedDB + Web Crypto — testez : Chrome, Firefox, Safari 
 1. **Protection de licence locale** : la clé `RRV-…` est vérifiée hors ligne dans le navigateur. C'est une protection **honnête et dissuasive**, pas un contrôle serveur inviolable — présenté comme tel dans l'UI et la documentation.
 2. **Courbe CRF** : heuristique interne de recouvrement (0,99 → 0,245 par tranche). **Ce n'est pas** une provision IFRS 9 / CECL et aucune conformité réglementaire n'est revendiquée.
 3. **Serveur legacy non déployé** : `server.ts` + `src/server/` (Express) survivent comme documentation historique. Ils contiennent une vérification de mot de passe défaillante (prouvée par tests curl pendant l'audit) et sont **exclus du chemin de déploiement**. Ne pas les activer sans réécriture complète de l'authentification.
-4. **Conflit npm** : `esbuild ^0.25` (devDep racine) entre en conflit avec le peer `esbuild ^0.27||^0.28` de `vite@8`. Utiliser `--legacy-peer-deps` (ou unifier les versions) jusqu'à résolution.
-5. **Pas de synchronisation** : conception sans cloud. Une perte de l'ordinateur sans sauvegarde = perte des données. La procédure de sauvegarde ci-dessus est donc structurante.
-6. **Tests navigateur non automatisés** : la suite couvre la logique pure (59 tests). L'UI n'a pas de tests E2E (Playwright/Cypress) à ce stade.
+4. **Pas de synchronisation** : conception sans cloud. Une perte de l'ordinateur sans sauvegarde = perte des données. La procédure de sauvegarde ci-dessus est donc structurante.
+5. **Tests navigateur non automatisés** : la suite couvre la logique pure (59 tests). L'UI n'a pas de tests E2E (Playwright/Cypress) à ce stade.
 
 ## Licence
 

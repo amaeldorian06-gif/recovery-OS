@@ -8,4 +8,4 @@ Disallow: /connexion
 Disallow: /inscription
 Disallow: /suivi
 
-Sitemap: https://recovery-os.vercel.app/sitemap.xml
+Sitemap: __SITE_URL__/sitemap.xml
