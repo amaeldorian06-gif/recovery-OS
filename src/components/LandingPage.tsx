@@ -153,6 +153,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
         <footer className="border-t border-white/10 py-8 text-center text-xs text-[#6B7D98]">
           <p>Revenue Recovery OS · Recouvrement d'impayés souverain · Hébergement des pages : Vercel — aucune donnée financière n'y transite.</p>
+          <button onClick={() => onNavigate('/suivi')} className="mt-2 underline hover:text-[#9AAAC0] cursor-pointer">
+            Suivi de progression du projet
+          </button>
         </footer>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { Navbar, PublicRoute } from './components/Navbar';
 import { LandingPage } from './components/LandingPage';
 import { FeaturesPage } from './components/FeaturesPage';
 import { ProductPreview } from './components/ProductPreview';
+import { ProgressDashboard } from './components/ProgressDashboard';
 import { PricingPage } from './components/PricingPage';
 import { SignUpPage } from './components/SignUpPage';
 import { SignInPage } from './components/SignInPage';
@@ -21,6 +22,7 @@ const PATH_ROUTES: Record<string, PublicRoute> = {
   '/': 'landing',
   '/fonctionnalites': 'features',
   '/apercu': 'preview',
+  '/suivi': 'progress',
   '/tarifs': 'pricing',
   '/connexion': 'signin',
   '/inscription': 'signup',
@@ -95,6 +97,8 @@ function Shell() {
         return <FeaturesPage onNavigate={navigate} />;
       case 'preview':
         return <ProductPreview onNavigate={navigate} />;
+      case 'progress':
+        return <ProgressDashboard onNavigate={navigate} />;
       case 'pricing':
         return <PricingPage onNavigate={navigate} />;
       case 'signup':

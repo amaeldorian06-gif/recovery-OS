@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Layers, Menu, X, LogOut, ArrowRight, Building, ExternalLink } from 'lucide-react';
 import { SessionUser } from '../app/AppContext';
 
-export type PublicRoute = 'landing' | 'features' | 'pricing' | 'preview' | 'signin' | 'signup';
+export type PublicRoute = 'landing' | 'features' | 'pricing' | 'preview' | 'progress' | 'signin' | 'signup';
 
 interface NavbarProps {
   route: PublicRoute | 'app';
