@@ -51,7 +51,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               Voir le produit
             </button>
           </div>
-          <p className="mt-4 text-xs text-[#6B7D98]">
+          <div className="mt-4">
+            <button
+              onClick={() => onNavigate('/apercu')}
+              className="group inline-flex items-center gap-1.5 text-sm text-[#38BDF8] hover:text-[#7DD3FC] font-medium"
+            >
+              Prévisualiser l'interface (aucune donnée requise)
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+          <p className="mt-3 text-xs text-[#6B7D98]">
             Sans carte bancaire · Licence locale · Fonctionne hors ligne
           </p>
         </section>

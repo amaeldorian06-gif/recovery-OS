@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Layers, Menu, X, LogOut, ArrowRight, Building, ExternalLink } from 'lucide-react';
 import { SessionUser } from '../app/AppContext';
 
-export type PublicRoute = 'landing' | 'features' | 'pricing' | 'signin' | 'signup';
+export type PublicRoute = 'landing' | 'features' | 'pricing' | 'preview' | 'signin' | 'signup';
 
 interface NavbarProps {
   route: PublicRoute | 'app';
@@ -30,6 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({ route, user, isDemo, onNavigate,
   const publicLinks: Array<{ label: string; path: string; route: PublicRoute }> = [
     { label: 'Accueil', path: '/', route: 'landing' },
     { label: 'Fonctionnalités', path: '/fonctionnalites', route: 'features' },
+    { label: 'Aperçu', path: '/apercu', route: 'preview' },
     { label: 'Tarifs', path: '/tarifs', route: 'pricing' },
   ];
 

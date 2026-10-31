@@ -5,6 +5,7 @@ import { AppProvider, useApp } from './app/AppContext';
 import { Navbar, PublicRoute } from './components/Navbar';
 import { LandingPage } from './components/LandingPage';
 import { FeaturesPage } from './components/FeaturesPage';
+import { ProductPreview } from './components/ProductPreview';
 import { PricingPage } from './components/PricingPage';
 import { SignUpPage } from './components/SignUpPage';
 import { SignInPage } from './components/SignInPage';
@@ -19,6 +20,7 @@ import { Lock, HardDrive, AlertTriangle } from 'lucide-react';
 const PATH_ROUTES: Record<string, PublicRoute> = {
   '/': 'landing',
   '/fonctionnalites': 'features',
+  '/apercu': 'preview',
   '/tarifs': 'pricing',
   '/connexion': 'signin',
   '/inscription': 'signup',
@@ -91,6 +93,8 @@ function Shell() {
     switch (route) {
       case 'features':
         return <FeaturesPage onNavigate={navigate} />;
+      case 'preview':
+        return <ProductPreview onNavigate={navigate} />;
       case 'pricing':
         return <PricingPage onNavigate={navigate} />;
       case 'signup':
