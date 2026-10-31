@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'arena/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  verifier:
+    name: Types, tests et build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installation reproductible
+        run: npm ci
+
+      - name: Vérification des types
+        run: npm run typecheck
+
+      - name: Tests unitaires
+        run: npm test
+
+      - name: Build de production
+        run: npm run build
+
+      - name: Contrôle du domaine injecté
+        run: |
+          test -f dist/index.html
+          grep -q "https://" dist/index.html
+          ! grep -q "__SITE_URL__" dist/index.html
+          ! grep -q "__SITE_URL__" dist/sitemap.xml
+          ! grep -q "__SITE_URL__" dist/robots.txt

@@ -1,220 +1,129 @@
 import React, { useState, useEffect } from 'react';
-import { InvoiceRecord, ActionLog } from '../types';
-import { ACTION_TEMPLATES, generateActionMessage, ActionTemplateOption } from '../utils/actionTemplates';
-import { formatCurrency } from '../utils/financial';
-import { analytics } from '../utils/analytics';
-import { 
-  X, 
-  Copy, 
-  Check, 
-  Send, 
-  Mail, 
-  Calendar, 
-  ShieldAlert, 
-  FileCheck 
-} from 'lucide-react';
+import { InvoiceRecord } from '../types';
+import { X, Mail, CalendarClock, AlertTriangle } from 'lucide-react';
 
 interface ActionCenterModalProps {
   invoice: InvoiceRecord;
+  onSubmit: (invoice: InvoiceRecord, type: string, notes: string, channel: string, scheduledDate: string) => void;
   onClose: () => void;
-  onSaveActionLog: (log: ActionLog) => void;
 }
 
-export const ActionCenterModal: React.FC<ActionCenterModalProps> = ({
-  invoice,
-  onClose,
-  onSaveActionLog,
-}) => {
-  // Pick default template based on risk/dispute/days
-  const defaultTemplateId = invoice.status === 'disputed'
-    ? 'dispute-resolution'
-    : invoice.daysPastDue > 45
-    ? 'formal-demand'
-    : invoice.daysPastDue > 15
-    ? 'firm-notice'
-    : 'courteous-reminder';
+const ACTION_TYPES: { value: string; label: string }[] = [
+  { value: 'relance_courtoise', label: 'Relance courtoise' },
+  { value: 'relance_formelle', label: 'Relance formelle' },
+  { value: 'appel_telephonique', label: 'Appel téléphonique' },
+  { value: 'mise_en_demeure', label: 'Mise en demeure' },
+  { value: 'autre', label: 'Autre' },
+];
 
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(defaultTemplateId);
-  const [subject, setSubject] = useState('');
-  const [body, setBody] = useState('');
-  const [copied, setCopied] = useState(false);
-  const [followUpDate, setFollowUpDate] = useState('2026-11-05');
-  const [outcomeNotes, setOutcomeNotes] = useState('Notice generated and prepared for transmission.');
+const CHANNELS: { value: string; label: string }[] = [
+  { value: 'email', label: 'E-mail' },
+  { value: 'telephone', label: 'Téléphone' },
+  { value: 'courrier', label: 'Courrier' },
+  { value: 'interne', label: 'Note interne' },
+];
 
-  const currentTemplate = ACTION_TEMPLATES.find(t => t.id === selectedTemplateId) || ACTION_TEMPLATES[0];
+/**
+ * Relance client : type d'action, canal, notes structurées, date d'échéance
+ * de suivi. Chaque action est journalisée et rejouable dans l'historique.
+ */
+export const ActionCenterModal: React.FC<ActionCenterModalProps> = ({ invoice, onSubmit, onClose }) => {
+  const [actionType, setActionType] = useState('relance_courtoise');
+  const [notes, setNotes] = useState('');
+  const [channel, setChannel] = useState('email');
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (invoice && currentTemplate) {
-      const generated = generateActionMessage(currentTemplate, invoice);
-      setSubject(generated.subject);
-      setBody(generated.body);
-    }
-  }, [invoice, currentTemplate]);
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(`Subject: ${subject}\n\n${body}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-    analytics.track('action_copied_to_clipboard');
-  };
-
-  const handleLogAction = () => {
-    analytics.track('first_action_created');
-    const log: ActionLog = {
-      id: `log-${Date.now()}`,
-      invoiceId: invoice.id,
-      invoiceNumber: invoice.invoiceNumber,
-      customerName: invoice.customerName,
-      timestamp: new Date().toISOString(),
-      actionType: 'email_reminder',
-      tone: currentTemplate.tone,
-      subject,
-      messageBody: body,
-      recipient: invoice.customerEmail,
-      outcome: outcomeNotes,
-      scheduledFollowUpDate: followUpDate,
-    };
-    onSaveActionLog(log);
-    onClose();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!notes.trim()) { setError('Décrivez le motif ou le contenu de la relance.'); return; }
+    setError('');
+    onSubmit(invoice, actionType, notes.trim(), channel, scheduledDate);
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Mail className="w-5 h-5 text-indigo-400" />
-            <div>
-              <h3 className="text-sm font-bold text-slate-100">
-                Action Notice Generator — {invoice.customerName}
-              </h3>
-              <p className="text-xs text-slate-400">
-                Invoice #{invoice.invoiceNumber} • {formatCurrency(invoice.outstandingAmount, invoice.currency)} • {invoice.daysPastDue}d Overdue
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-          >
-            <X className="w-5 h-5" />
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={onClose}>
+      <div
+        className="bg-[#111726] border border-white/10 rounded-xl p-5 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Programmer une relance"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold flex items-center gap-2">
+            <Mail className="w-4 h-4 text-[#2563EB]" />
+            Relance — {invoice.invoiceNumber}
+          </h3>
+          <button onClick={onClose} className="text-[#6B7D98] hover:text-white" aria-label="Fermer">
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Body content */}
-        <div className="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
-          {/* Tone Selector */}
-          <div>
-            <label className="block font-semibold text-slate-300 mb-1.5">
-              Select Communication Strategy & Tone
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {ACTION_TEMPLATES.map(tpl => (
-                <button
-                  key={tpl.id}
-                  onClick={() => setSelectedTemplateId(tpl.id)}
-                  className={`p-2 rounded-lg text-left border transition-all ${
-                    selectedTemplateId === tpl.id
-                      ? 'bg-indigo-600/20 border-indigo-500 text-indigo-200'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                  }`}
-                >
-                  <div className="font-semibold text-slate-200">{tpl.name}</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5 capitalize">Stage: {tpl.stage}</div>
-                </button>
-              ))}
+        <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 mb-4 text-xs space-y-0.5">
+          <p className="text-[#9AAAC0]">Client : <span className="text-white font-medium">{invoice.customerName}</span></p>
+          {invoice.customerEmail && (
+            <p className="text-[#9AAAC0]">Contact : <span className="font-mono">{invoice.customerEmail}</span></p>
+          )}
+          <p className="text-[#E9AE57] font-mono">Encours {invoice.outstandingAmount.toFixed(2)} € · {invoice.daysPastDue} jours de retard</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-[#9AAAC0] block mb-1">Type d'action *</label>
+              <select value={actionType} onChange={e => setActionType(e.target.value)}
+                className="w-full bg-[#0B0F17] border border-white/10 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]">
+                {ACTION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-[#9AAAC0] block mb-1">Canal</label>
+              <select value={channel} onChange={e => setChannel(e.target.value)}
+                className="w-full bg-[#0B0F17] border border-white/10 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]">
+                {CHANNELS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </select>
             </div>
           </div>
-
-          {/* Subject Line */}
           <div>
-            <label className="block font-semibold text-slate-300 mb-1">
-              Subject Line
+            <label className="text-xs text-[#9AAAC0] block mb-1">Motif / notes structurées *</label>
+            <textarea
+              rows={4} required value={notes} autoFocus
+              onChange={e => { setNotes(e.target.value); setError(''); }}
+              placeholder="Objet : facture FA-2026-014 · Rappel d'échéance du JJ/MM/AAAA · Demande de date de règlement..."
+              className="w-full bg-[#0B0F17] border border-white/10 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#2563EB] resize-none"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-[#9AAAC0] block mb-1 flex items-center gap-1">
+              <CalendarClock className="w-3.5 h-3.5" /> Date de suivi (optionnel)
             </label>
             <input
-              type="text"
-              value={subject}
-              onChange={e => setSubject(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 text-xs focus:outline-none focus:border-indigo-500 font-medium"
+              type="date" value={scheduledDate} onChange={e => setScheduledDate(e.target.value)}
+              className="w-full bg-[#0B0F17] border border-white/10 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
             />
+            {scheduledDate && (
+              <p className="text-[11px] text-[#38BDF8] mt-1">
+                Un rappel apparaîtra sur le tableau de bord tant que l'action n'est pas soldée.
+              </p>
+            )}
           </div>
-
-          {/* Body Text */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="font-semibold text-slate-300">
-                Outreach Message Copy
-              </label>
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="text-indigo-400 hover:text-indigo-300 flex items-center space-x-1"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'Copied to Clipboard!' : 'Copy Copy'}</span>
-              </button>
-            </div>
-            <textarea
-              rows={8}
-              value={body}
-              onChange={e => setBody(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-200 font-mono text-xs focus:outline-none focus:border-indigo-500"
-            />
-          </div>
-
-          {/* Follow-up schedule & Action Log */}
-          <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block font-semibold text-slate-300 mb-1">
-                Schedule Next Follow-Up Date
-              </label>
-              <input
-                type="date"
-                value={followUpDate}
-                onChange={e => setFollowUpDate(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-slate-200"
-              />
-            </div>
-            <div>
-              <label className="block font-semibold text-slate-300 mb-1">
-                Internal Audit Note
-              </label>
-              <input
-                type="text"
-                value={outcomeNotes}
-                onChange={e => setOutcomeNotes(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-slate-200"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="p-3 sm:px-5 sm:py-3 border-t border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-slate-950/60 gap-2">
-          <button
-            onClick={onClose}
-            className="px-3 py-2 sm:py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors order-2 sm:order-1 text-center"
-          >
-            Cancel
-          </button>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 order-1 sm:order-2">
-            <button
-              onClick={handleCopy}
-              className="px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center justify-center space-x-1"
-            >
-              <Copy className="w-3.5 h-3.5" />
-              <span>Copy Text</span>
+          {error && <p className="text-xs text-red-400 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> {error}</p>}
+          <div className="flex gap-2 pt-1">
+            <button type="button" onClick={onClose} className="flex-1 bg-white/5 border border-white/10 rounded-lg py-2.5 text-sm font-semibold hover:bg-white/10">
+              Annuler
             </button>
-            <button
-              onClick={handleLogAction}
-              className="px-4 py-2 sm:py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors flex items-center justify-center space-x-1 shadow"
-            >
-              <FileCheck className="w-3.5 h-3.5" />
-              <span>Log Action & Update Timeline</span>
+            <button type="submit" className="flex-1 bg-[#2563EB] text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-[#1D4ED8]">
+              Journaliser l'action
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

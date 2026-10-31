@@ -1,29 +1,24 @@
 import { AgingBucket, FinancialMetrics, InvoiceRecord, RiskTier } from '../types';
+import { daysPastDue, parseDateInput, todayISO } from './dates';
+import { DEFAULT_CURRENCY, formatMoney, roundMoney } from './money';
+
+export { formatMoney as formatCurrency };
 
 /**
- * Calculates days past due relative to reference date.
- * If dueDate is today or in future, returns 0 or negative number.
+ * Jours de retard d'une échéance.
+ * La date de référence est la date locale courante, sauf explicite (tests, import figé).
+ * Une date illisible lève une erreur : plus aucun retour silencieux à 0.
  */
 export function calculateDaysPastDue(dueDateStr: string, asOfDateStr?: string): number {
-  if (!dueDateStr) return 0;
-  const due = new Date(dueDateStr + 'T00:00:00Z');
-  const asOf = asOfDateStr ? new Date(asOfDateStr + 'T00:00:00Z') : new Date('2026-10-29T00:00:00Z');
-  
-  if (isNaN(due.getTime()) || isNaN(asOf.getTime())) return 0;
-  
-  const diffTime = asOf.getTime() - due.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
+  return daysPastDue(dueDateStr, asOfDateStr ?? todayISO());
 }
 
-/**
- * Standard 5-bracket aging categorization
- */
-export function getAgingBucket(daysPastDue: number): AgingBucket {
-  if (daysPastDue <= 0) return 'Current';
-  if (daysPastDue <= 30) return '1-30';
-  if (daysPastDue <= 60) return '31-60';
-  if (daysPastDue <= 90) return '61-90';
+/** Catégorisation d'aging standard sur 5 tranches. */
+export function getAgingBucket(days: number): AgingBucket {
+  if (days <= 0) return 'Current';
+  if (days <= 30) return '1-30';
+  if (days <= 60) return '31-60';
+  if (days <= 90) return '61-90';
   return '90+';
 }
 
@@ -32,90 +27,208 @@ export interface RiskInput {
   outstandingAmount: number;
   totalPortfolioAmount: number;
   isDisputed?: boolean;
+  hasOpenPromise?: boolean;
+  hasBrokenPromise?: boolean;
   promisedDate?: string;
   asOfDateStr?: string;
 }
 
-/**
- * Explainable Risk Scoring Engine
- * Computes deterministic score (0 - 100) and returns human-readable audit factors.
- */
-export function calculateRiskScore(input: RiskInput): { score: number; tier: RiskTier; factors: string[] } {
-  let score = 0;
-  const factors: string[] = [];
+export interface RiskFactor {
+  code: string;
+  label: string;
+  points: number;
+}
 
-  const { daysPastDue, outstandingAmount, totalPortfolioAmount, isDisputed, promisedDate, asOfDateStr } = input;
-
-  // 1. Recency & Days Past Due Component (Max 50 points)
-  if (daysPastDue <= 0) {
-    factors.push('Invoice is current or not yet due (0 pts)');
-  } else if (daysPastDue <= 30) {
-    score += 15;
-    factors.push(`Delinquent 1-30 days (+15 pts: ${daysPastDue}d overdue)`);
-  } else if (daysPastDue <= 60) {
-    score += 28;
-    factors.push(`Aging 31-60 days (+28 pts: ${daysPastDue}d overdue)`);
-  } else if (daysPastDue <= 90) {
-    score += 40;
-    factors.push(`High aging 61-90 days (+40 pts: ${daysPastDue}d overdue)`);
-  } else {
-    score += 50;
-    factors.push(`Severely delinquent 90+ days (+50 pts: ${daysPastDue}d overdue)`);
-  }
-
-  // 2. Exposure Concentration Component (Max 25 points)
-  if (totalPortfolioAmount > 0 && outstandingAmount > 0) {
-    const concentration = outstandingAmount / totalPortfolioAmount;
-    const pctStr = (concentration * 100).toFixed(1);
-    if (concentration >= 0.15) {
-      score += 25;
-      factors.push(`High concentration risk (+25 pts: ${pctStr}% of total portfolio)`);
-    } else if (concentration >= 0.05) {
-      score += 15;
-      factors.push(`Moderate concentration risk (+15 pts: ${pctStr}% of total portfolio)`);
-    } else if (concentration >= 0.02) {
-      score += 8;
-      factors.push(`Noticeable balance exposure (+8 pts: ${pctStr}% of total portfolio)`);
-    } else {
-      score += 3;
-      factors.push(`Low relative concentration (+3 pts: ${pctStr}% of total portfolio)`);
-    }
-  }
-
-  // 3. Broken Promise to Pay Component (15 points)
-  if (promisedDate) {
-    const promiseDueDays = calculateDaysPastDue(promisedDate, asOfDateStr);
-    if (promiseDueDays > 0) {
-      score += 15;
-      factors.push(`Broken promise penalty (+15 pts: Promised payment date was ${promisedDate}, passed ${promiseDueDays}d ago)`);
-    }
-  }
-
-  // 4. Commercial Dispute Flag (12 points)
-  if (isDisputed) {
-    score += 12;
-    factors.push('Dispute flagged: Requires account reconciliation or resolution (+12 pts)');
-  }
-
-  // Normalize score between 0 and 100
-  score = Math.min(100, Math.max(0, score));
-
-  // Determine Tier
-  let tier: RiskTier = 'Low';
-  if (score >= 75) {
-    tier = 'Critical';
-  } else if (score >= 50) {
-    tier = 'High';
-  } else if (score >= 25) {
-    tier = 'Medium';
-  }
-
-  return { score, tier, factors };
+export interface RiskResult {
+  score: number;
+  tier: RiskTier;
+  /** Facteurs sous forme de chaînes lisibles (format historique, utilisé par l'UI et le stockage). */
+  factors: string[];
+  /** Facteurs structurés (code + points) pour l'audit et les exports. */
+  factorDetails: RiskFactor[];
 }
 
 /**
- * Calculates aggregated financial metrics ensuring strict accounting segregation.
- * Never conflates promised payments or disputed amounts with collected cash.
+ * Moteur de scoring de recouvrement — 100 % déterministe et explicable.
+ *
+ * Pondération (documentée, versionnée, testée) :
+ *   1. Retard / ancienneté d'impayé ......... 0 à 50 pts
+ *   2. Concentration d'exposition ........... 0 à 25 pts
+ *   3. Promesse de règlement rompue ......... +15 pts
+ *   4. Litige commercial en cours ........... +12 pts
+ *   5. Promesse de règlement en cours ....... -8 pts (assouplissement maîtrisé)
+ *
+ * Le score est recalculé à chaque affichage depuis les données brutes :
+ * il n'est jamais stocké figé.
+ */
+export function calculateRiskScore(input: RiskInput): RiskResult {
+  const factors: RiskFactor[] = [];
+  let score = 0;
+
+  const {
+    daysPastDue: dpd,
+    outstandingAmount,
+    totalPortfolioAmount,
+    isDisputed,
+    hasOpenPromise,
+    hasBrokenPromise,
+    asOfDateStr,
+    promisedDate,
+  } = input;
+
+  // 1. Ancienneté d'impayé (0-50)
+  if (dpd <= 0) {
+    factors.push({ code: 'aging_current', label: 'Facture à jour ou non échue (0 pt)', points: 0 });
+  } else if (dpd <= 30) {
+    score += 15;
+    factors.push({ code: 'aging_1_30', label: `Impayé 1-30 jours (+15 pts : ${dpd} j de retard)`, points: 15 });
+  } else if (dpd <= 60) {
+    score += 28;
+    factors.push({ code: 'aging_31_60', label: `Impayé 31-60 jours (+28 pts : ${dpd} j de retard)`, points: 28 });
+  } else if (dpd <= 90) {
+    score += 40;
+    factors.push({ code: 'aging_61_90', label: `Impayé 61-90 jours (+40 pts : ${dpd} j de retard)`, points: 40 });
+  } else {
+    score += 50;
+    factors.push({ code: 'aging_90p', label: `Impayé sévère 90+ jours (+50 pts : ${dpd} j de retard)`, points: 50 });
+  }
+
+  // 2. Concentration (0-25)
+  if (totalPortfolioAmount > 0 && outstandingAmount > 0) {
+    const concentration = outstandingAmount / totalPortfolioAmount;
+    const pct = (concentration * 100).toFixed(1);
+    if (concentration >= 0.15) {
+      score += 25;
+      factors.push({ code: 'conc_high', label: `Forte concentration (+25 pts : ${pct} % du portefeuille)`, points: 25 });
+    } else if (concentration >= 0.05) {
+      score += 15;
+      factors.push({ code: 'conc_mid', label: `Concentration modérée (+15 pts : ${pct} % du portefeuille)`, points: 15 });
+    } else if (concentration >= 0.02) {
+      score += 8;
+      factors.push({ code: 'conc_low', label: `Exposition notable (+8 pts : ${pct} % du portefeuille)`, points: 8 });
+    } else {
+      score += 3;
+      factors.push({ code: 'conc_min', label: `Faible concentration relative (+3 pts : ${pct} % du portefeuille)`, points: 3 });
+    }
+  }
+
+  // 3. Promesse rompue (+15)
+  if (hasBrokenPromise || promisedDate) {
+    const promiseDate = promisedDate;
+    if (hasBrokenPromise || (promiseDate && asOfDateStr && daysPastDue(promiseDate, asOfDateStr) > 0)) {
+      score += 15;
+      factors.push({
+        code: 'promise_broken',
+        label: `Promesse de règlement rompue (+15 pts${promiseDate ? ` : échéance promise ${promiseDate} dépassée` : ''})`,
+        points: 15,
+      });
+    }
+  }
+
+  // 4. Litige (+12)
+  if (isDisputed) {
+    score += 12;
+    factors.push({ code: 'dispute', label: 'Litige commercial en cours (+12 pts : réconciliation requise)', points: 12 });
+  }
+
+  // 5. Promesse en cours valide (-8)
+  if (hasOpenPromise && !hasBrokenPromise) {
+    score -= 8;
+    factors.push({ code: 'promise_open', label: 'Engagement de règlement en cours (-8 pts)', points: -8 });
+  }
+
+  score = Math.min(100, Math.max(0, score));
+
+  let tier: RiskTier = 'Low';
+  if (score >= 75) tier = 'Critical';
+  else if (score >= 50) tier = 'High';
+  else if (score >= 25) tier = 'Medium';
+
+  return {
+    score,
+    tier,
+    factors: factors.map(f => f.label),
+    factorDetails: factors,
+  };
+}
+
+/**
+ * Taux de recouvrement empirique (Collection Recovery Factor).
+ *
+ * Courbe déclarative issue des ordres de grandeur publiés par la Credit Research
+ * Foundation et les sociétés de recouvrement B2B (moyennes de portefeuille,
+ * non contractualisées). Utilisée comme **heuristique d'aide à la décision**,
+ * jamais comme provision comptable : aucune revendication IFRS 9 / CECL
+ * n'est formulée sans validation méthodologique indépendante.
+ */
+export const DEFAULT_CRF_CURVE: ReadonlyArray<{ maxDays: number; factor: number }> = [
+  { maxDays: 0, factor: 0.99 },
+  { maxDays: 30, factor: 0.965 },
+  { maxDays: 60, factor: 0.892 },
+  { maxDays: 90, factor: 0.736 },
+  { maxDays: 120, factor: 0.578 },
+  { maxDays: 180, factor: 0.412 },
+  { maxDays: Number.POSITIVE_INFINITY, factor: 0.245 },
+];
+
+export function getCollectionRecoveryFactor(days: number, curve = DEFAULT_CRF_CURVE): number {
+  const d = Math.max(0, days);
+  for (const step of curve) {
+    if (d <= step.maxDays) return step.factor;
+  }
+  return curve[curve.length - 1].factor;
+}
+
+export interface InvoiceScoreContext {
+  portfolioOutstanding: number;
+  asOfDate: string;
+  openPromiseIds?: Set<string>;
+  brokenPromiseIds?: Set<string>;
+}
+
+/**
+ * Recalcule les champs dérivés (retard, tranche, score) d'une facture
+ * depuis ses données brutes. Fonction pure — utilisée à l'affichage.
+ */
+export function withDerivedFields(inv: InvoiceRecord, ctx: InvoiceScoreContext): InvoiceRecord {
+  const dpd = calculateDaysPastDue(inv.dueDate, ctx.asOfDate);
+  const bucket = getAgingBucket(dpd);
+  const outstanding = roundMoney(Math.max(0, inv.totalAmount - (inv.paidAmount || 0)));
+  const isDisputed = inv.status === 'disputed';
+  const hasOpenPromise = !!inv.promisedPaymentDate && !ctx.brokenPromiseIds?.has(inv.id) && !!ctx.openPromiseIds?.has(inv.id);
+  const hasBrokenPromise = !!ctx.brokenPromiseIds?.has(inv.id);
+
+  const { score, tier, factors } = calculateRiskScore({
+    daysPastDue: dpd,
+    outstandingAmount: outstanding,
+    totalPortfolioAmount: ctx.portfolioOutstanding,
+    isDisputed,
+    hasOpenPromise,
+    hasBrokenPromise,
+    promisedDate: inv.promisedPaymentDate,
+    asOfDateStr: ctx.asOfDate,
+  });
+
+  const status: InvoiceRecord['status'] =
+    outstanding <= 0 ? 'paid' : isDisputed ? 'disputed' : dpd > 0 ? 'overdue' : 'current';
+
+  return {
+    ...inv,
+    outstandingAmount: outstanding,
+    daysPastDue: dpd,
+    agingBucket: bucket,
+    riskScore: score,
+    riskTier: tier,
+    riskFactors: factors,
+    status,
+  };
+}
+
+/**
+ * Agrégats financiers. Ségrégation comptable stricte :
+ *  - une promesse de règlement n'est JAMAIS comptée comme du cash ;
+ *  - un litige est isolé de l'encours en retard ;
+ *  - les montants ne sont jamais additionnés entre devises.
  */
 export function calculateFinancialMetrics(
   invoices: InvoiceRecord[],
@@ -127,24 +240,23 @@ export function calculateFinancialMetrics(
   let promisedPayments = 0;
   let disputedAmount = 0;
   let confirmedPayments = 0;
-  
+
   let overdueCount = 0;
   let disputedCount = 0;
   let paidCount = 0;
   const currencySummary: { [currency: string]: number } = {};
 
   for (const inv of invoices) {
-    const cur = inv.currency || 'USD';
-    currencySummary[cur] = (currencySummary[cur] || 0) + (inv.outstandingAmount || 0);
-
+    const cur = (inv.currency || DEFAULT_CURRENCY).toUpperCase();
+    const outstanding = roundMoney(Math.max(0, (inv.totalAmount || 0) - (inv.paidAmount || 0)));
+    currencySummary[cur] = roundMoney((currencySummary[cur] || 0) + outstanding);
     confirmedPayments += inv.paidAmount || 0;
 
-    if (inv.status === 'paid') {
+    if (inv.status === 'paid' || outstanding <= 0) {
       paidCount++;
       continue;
     }
 
-    const outstanding = Math.max(0, (inv.totalAmount || 0) - (inv.paidAmount || 0));
     totalReceivables += outstanding;
 
     if (inv.status === 'disputed') {
@@ -155,45 +267,42 @@ export function calculateFinancialMetrics(
       overdueCount++;
     }
 
-    if (inv.riskScore >= 70 && outstanding > 0) {
+    if (inv.riskScore >= 70) {
       atRiskExposure += outstanding;
     }
 
-    if (inv.promisedPaymentDate && outstanding > 0) {
+    if (inv.promisedPaymentDate) {
       promisedPayments += outstanding;
     }
   }
 
-  // DSO Calculation
-  // Standard simple formula: (Total Receivables / Period Credit Sales) * Period Days
+  // DSO : formule simple (encours / ventes à crédit) × période.
   let dsoValue: number | null = null;
-  let dsoMethod = 'Simple Receivables Ratio';
+  const dsoMethod = 'Simple Receivables Ratio';
   let dsoNotes = '';
-
   const periodCreditSales = options?.periodCreditSales;
   const periodDays = options?.periodDays || 90;
 
   if (periodCreditSales && periodCreditSales > 0) {
     dsoValue = Math.round((totalReceivables / periodCreditSales) * periodDays);
-    dsoNotes = `Calculated over ${periodDays}-day period based on $${periodCreditSales.toLocaleString()} credit sales.`;
+    dsoNotes = `Calculé sur ${periodDays} jours à partir de ${Math.round(periodCreditSales).toLocaleString('fr-FR')} € de ventes à crédit.`;
   } else {
-    // Fallback: estimate from sum of issued invoices if available
-    const estimatedCreditSales = invoices.reduce((acc, curr) => acc + curr.totalAmount, 0);
-    if (estimatedCreditSales > 0) {
-      dsoValue = Math.round((totalReceivables / estimatedCreditSales) * 90);
-      dsoNotes = `Estimated over 90-day cycle based on total billed portfolio volume ($${Math.round(estimatedCreditSales).toLocaleString()}).`;
+    const billed = invoices.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
+    if (billed > 0) {
+      dsoValue = Math.round((totalReceivables / billed) * 90);
+      dsoNotes = `Estimation indicative sur 90 jours à partir du volume facturé du portefeuille (${Math.round(billed).toLocaleString('fr-FR')} €). Renseignez vos ventes à crédit pour une mesure exacte.`;
     } else {
-      dsoNotes = 'Insufficient historical sales data to reliably compute DSO.';
+      dsoNotes = 'Données de vente insuffisantes pour calculer un DSO.';
     }
   }
 
   return {
-    totalReceivables: Math.round(totalReceivables * 100) / 100,
-    totalOverdue: Math.round(totalOverdue * 100) / 100,
-    atRiskExposure: Math.round(atRiskExposure * 100) / 100,
-    promisedPayments: Math.round(promisedPayments * 100) / 100,
-    disputedAmount: Math.round(disputedAmount * 100) / 100,
-    confirmedPayments: Math.round(confirmedPayments * 100) / 100,
+    totalReceivables: roundMoney(totalReceivables),
+    totalOverdue: roundMoney(totalOverdue),
+    atRiskExposure: roundMoney(atRiskExposure),
+    promisedPayments: roundMoney(promisedPayments),
+    disputedAmount: roundMoney(disputedAmount),
+    confirmedPayments: roundMoney(confirmedPayments),
     invoiceCount: invoices.length,
     overdueCount,
     disputedCount,
@@ -205,18 +314,29 @@ export function calculateFinancialMetrics(
   };
 }
 
-/**
- * Format currency with locale-safe fallback
- */
-export function formatCurrency(amount: number, currency: string = 'USD'): string {
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  } catch {
-    return `$${Math.round(amount).toLocaleString('en-US')}`;
+/** Validation d'une facture avant persistance. */
+export function validateInvoiceRecord(inv: Partial<InvoiceRecord>): string[] {
+  const errors: string[] = [];
+  if (!inv.invoiceNumber || !String(inv.invoiceNumber).trim()) {
+    errors.push('Le numéro de facture est obligatoire.');
   }
+  if (!inv.customerName || !String(inv.customerName).trim()) {
+    errors.push('Le nom du client est obligatoire.');
+  }
+  if (typeof inv.totalAmount !== 'number' || !Number.isFinite(inv.totalAmount) || inv.totalAmount < 0) {
+    errors.push('Le montant total doit être un nombre positif.');
+  }
+  if (typeof inv.paidAmount !== 'number' || !Number.isFinite(inv.paidAmount) || inv.paidAmount < 0) {
+    errors.push('Le montant réglé doit être un nombre positif.');
+  }
+  if (typeof inv.totalAmount === 'number' && typeof inv.paidAmount === 'number' && inv.paidAmount > inv.totalAmount) {
+    errors.push('Le montant réglé ne peut pas dépasser le montant total.');
+  }
+  if (!inv.dueDate || !parseDateInput(inv.dueDate).ok) {
+    errors.push(`Date d'échéance illisible : ${inv.dueDate || 'absente'}`);
+  }
+  if (inv.issueDate && !parseDateInput(inv.issueDate).ok) {
+    errors.push(`Date d'émission illisible : ${inv.issueDate}`);
+  }
+  return errors;
 }

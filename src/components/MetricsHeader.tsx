@@ -1,82 +1,95 @@
 import React from 'react';
 import { FinancialMetrics } from '../types';
-import { formatCurrency } from '../utils/financial';
-import { 
-  AlertTriangle, 
-  DollarSign, 
-  Clock, 
-  CheckCircle, 
-  HelpCircle 
-} from 'lucide-react';
+import { formatMoney } from '../utils/money';
+import { AlertTriangle, CheckCircle, CalendarClock, ShieldAlert } from 'lucide-react';
 
 interface MetricsHeaderProps {
   metrics: FinancialMetrics;
 }
 
+/**
+ * Bandeau de KPI — 4 indicateurs principaux + DSO.
+ * Décision produit : l'encours total et l'encours en retard sont de retour,
+ * ils constituent les repères primaires d'un responsable recouvrement.
+ */
 export const MetricsHeader: React.FC<MetricsHeaderProps> = ({ metrics }) => {
+  const currencies = Object.keys(metrics.currencySummary || {});
+
+  const cards = [
+    {
+      label: 'Encours total',
+      value: formatMoney(metrics.totalReceivables),
+      detail: `${metrics.invoiceCount - metrics.paidCount} facture(s) non soldée(s)`,
+      icon: ShieldAlert,
+      tone: 'text-[#38BDF8]',
+      bg: 'bg-[#38BDF8]/10',
+    },
+    {
+      label: 'Impayés (hors litiges)',
+      value: formatMoney(metrics.totalOverdue),
+      detail: `${metrics.overdueCount} facture(s) en retard`,
+      icon: AlertTriangle,
+      tone: 'text-[#E9AE57]',
+      bg: 'bg-[#E9AE57]/10',
+    },
+    {
+      label: 'Litiges en cours',
+      value: formatMoney(metrics.disputedAmount),
+      detail: `${metrics.disputedCount} réconciliation(s)`,
+      icon: ShieldAlert,
+      tone: 'text-[#D946EF]',
+      bg: 'bg-[#D946EF]/10',
+    },
+    {
+      label: 'Encaissements confirmés',
+      value: formatMoney(metrics.confirmedPayments),
+      detail: `${metrics.paidCount} facture(s) soldée(s)`,
+      icon: CheckCircle,
+      tone: 'text-[#38C995]',
+      bg: 'bg-[#38C995]/10',
+    },
+  ];
+
   return (
-    <div className="space-y-3 w-full max-w-full">
-      {/* Top Warning Banner if Multi-Currency exists */}
-      {metrics.currencySummary && Object.keys(metrics.currencySummary).length > 1 && (
-        <div className="bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs p-3 rounded-xl flex items-start sm:items-center justify-between gap-2">
-          <div className="flex items-start sm:items-center space-x-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
-            <span className="leading-relaxed">
-              <strong>Multi-Currency Portfolio:</strong> Multiple currencies detected in current import (
-              {Object.entries(metrics.currencySummary)
-                .map(([cur, amt]) => `${cur} ${amt.toLocaleString()}`)
-                .join(', ')}
-              ). Metrics displayed in native currency balances without synthetic conversion.
-            </span>
-          </div>
+    <div className="space-y-3">
+      {currencies.length > 1 && (
+        <div className="bg-[#E9AE57]/10 border border-[#E9AE57]/20 text-[#E9AE57] text-[13px] p-3 rounded-xl flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>
+            Portefeuille multi-devises : {currencies.map(c => `${c} ${Math.round(metrics.currencySummary[c]).toLocaleString('fr-FR')}`).join(' · ')}.
+            Les totaux ne sont jamais additionnés entre devises.
+          </span>
         </div>
       )}
 
-      {/* Primary 4-KPI Responsive Grid (selected sections removed per user request) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-
-        {/* 5. Disputed Invoices */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-3.5 hover:border-slate-700 transition-colors min-w-0">
-          <div className="flex items-center justify-between text-purple-400 mb-1">
-            <span className="text-[11px] sm:text-xs font-medium truncate">In Dispute</span>
-            <AlertTriangle className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-          </div>
-          <div className="text-lg sm:text-xl font-bold text-purple-300 tracking-tight truncate font-mono">
-            {formatCurrency(metrics.disputedAmount)}
-          </div>
-          <p className="text-[10px] sm:text-[11px] text-purple-500/80 mt-1 truncate">
-            {metrics.disputedCount} reconciliation holds
-          </p>
-        </div>
-
-        {/* 6. Confirmed Cash Collected */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-3.5 hover:border-slate-700 transition-colors min-w-0">
-          <div className="flex items-center justify-between text-emerald-400 mb-1">
-            <span className="text-[11px] sm:text-xs font-medium truncate">Cash Collected</span>
-            <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-          </div>
-          <div className="text-lg sm:text-xl font-bold text-emerald-300 tracking-tight truncate font-mono">
-            {formatCurrency(metrics.confirmedPayments)}
-          </div>
-          <p className="text-[10px] sm:text-[11px] text-emerald-500/80 mt-1 truncate">
-            {metrics.paidCount} settled in full
-          </p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {cards.map(card => {
+          const Icon = card.icon;
+          return (
+            <div key={card.label} className="rounded-xl border border-white/10 bg-[#111726] p-4 min-w-0">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[13px] text-[#9AAAC0] truncate">{card.label}</span>
+                <span className={`w-7 h-7 rounded-lg ${card.bg} flex items-center justify-center shrink-0`}>
+                  <Icon className={`w-4 h-4 ${card.tone}`} />
+                </span>
+              </div>
+              <div className={`text-xl font-bold font-mono tracking-tight truncate ${card.tone}`}>{card.value}</div>
+              <p className="text-[11px] text-[#6B7D98] mt-1 truncate">{card.detail}</p>
+            </div>
+          );
+        })}
       </div>
 
-      {/* DSO Summary Strip */}
-      <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-3 sm:py-2.5 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-2">
-        <div className="flex items-center space-x-2 flex-wrap">
-          <span className="font-semibold text-slate-300">Days Sales Outstanding (DSO):</span>
-          <span className="font-bold text-indigo-400 text-sm">
-            {metrics.dsoValue !== null ? `${metrics.dsoValue} Days` : 'N/A'}
-          </span>
-          <span className="hidden sm:inline text-slate-600">|</span>
-          <span className="text-slate-400 text-[11px]">{metrics.dsoNotes}</span>
+      <div className="rounded-xl border border-white/10 bg-[#111726] px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[13px]">
+        <div className="flex items-center gap-2 flex-wrap">
+          <CalendarClock className="w-4 h-4 text-[#38BDF8]" />
+          <span className="font-semibold">DSO (Days Sales Outstanding) :</span>
+          <span className="font-bold text-[#38BDF8]">{metrics.dsoValue !== null ? `${metrics.dsoValue} jours` : 'N/A'}</span>
+          <span className="text-[#6B7D98] text-xs">{metrics.dsoNotes}</span>
         </div>
-        <div className="text-[10px] sm:text-[11px] text-slate-500">
-          Strict segregation: Promises are never booked as collected cash.
-        </div>
+        <span className="text-[11px] text-[#6B7D98]">
+          Promesses de règlement suivies séparément : {formatMoney(metrics.promisedPayments)} — jamais comptées comme du cash.
+        </span>
       </div>
     </div>
   );

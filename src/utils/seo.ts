@@ -1,8 +1,10 @@
 /**
- * @license
- * SPDX-License-Identifier: Apache-2.0
+ * Métadonnées SEO des sections publiques.
+ *
+ * ⚠️ Module historique : `updateSEOTags` n'est plus appelé par le routeur.
+ * La source de vérité SEO est `index.html` + `public/sitemap.xml`, où le
+ * domaine est injecté au build via `VITE_SITE_URL` (voir vite.config.ts).
  */
-
 export interface SEOMetadata {
   title: string;
   description: string;
@@ -17,7 +19,8 @@ export interface SEOMetadata {
   schemaSnippet?: Record<string, unknown>;
 }
 
-export const BASE_SITE_URL = 'https://ais-dev-xnl2yncmot7y7ur6qqt2yz-429114080415.europe-west2.run.app';
+export const BASE_SITE_URL =
+  typeof window !== 'undefined' ? window.location.origin : 'https://recovery-os.vercel.app';
 export const DEFAULT_OG_IMAGE = `${BASE_SITE_URL}/og-image.png`;
 
 export const PUBLIC_SECTIONS_SEO: Record<string, SEOMetadata> = {
@@ -294,7 +297,7 @@ export function updateSEOTags(sectionKey: string, customData?: Partial<SEOMetada
   setMetaTag('meta[property="og:image"]', 'property', 'og:image', ogImage);
   setMetaTag('meta[property="og:type"]', 'property', 'og:type', ogType);
   setMetaTag('meta[property="og:site_name"]', 'property', 'og:site_name', 'Revenue Recovery OS');
-  setMetaTag('meta[property="og:locale"]', 'property', 'og:locale', 'en_US');
+  setMetaTag('meta[property="og:locale"]', 'property', 'og:locale', 'fr_FR');
 
   // 5. Twitter Card Tags
   setMetaTag('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
