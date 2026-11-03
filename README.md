@@ -83,7 +83,9 @@ npm run build                           # build statique → dist/
 
 ```bash
 npm run check     # typecheck + 81 tests + build
-npm run smoke     # contrôle de rendu (404, écran d'erreur) sans navigateur
+npm run smoke       # contrôle de rendu (pages légales, 404, écran d'erreur)
+npm run legal:check # complétude de l'identité légale (échoue si placeholders)
+npm run licence -- --plan pro --client "ACME SARL"  # génère une clé de vente
 npx vercel --prod # ou import du dépôt GitHub dans Vercel
 ```
 
@@ -97,6 +99,12 @@ npx vercel --prod # ou import du dépôt GitHub dans Vercel
 
 Le stockage utilise IndexedDB + Web Crypto — testez : Chrome, Firefox, Safari (macOS), Edge. Le mode privé peut limiter la persistance (l'application affiche alors une alerte).
 
+## Périmètre commercial et fiscal
+
+- **Vente exclusivement entre professionnels** (B2B) : pas de droit de rétractation légal, pas de médiation de la consommation. Une **garantie commerciale d'annulation de 14 jours** est offerte volontairement (`/retractation`).
+- **Franchise en base de TVA** : mention « TVA non applicable, article 293 B du CGI », aucun numéro de TVA.
+- Ces deux paramètres sont centralisés dans `src/config/editor.ts` (`salesScope`, `vatExempt`) et répercutés automatiquement dans les CGV, la page Tarifs et le pied de page.
+
 ## Limites techniques connues
 
 1. **Protection de licence locale** : la clé `RRV-…` est vérifiée hors ligne dans le navigateur. C'est une protection **honnête et dissuasive**, pas un contrôle serveur inviolable — présenté comme tel dans l'UI et la documentation.
@@ -104,7 +112,8 @@ Le stockage utilise IndexedDB + Web Crypto — testez : Chrome, Firefox, Safari 
 3. **Serveur legacy non déployé** : `server.ts` + `src/server/` (Express) survivent comme documentation historique. Ils contiennent une vérification de mot de passe défaillante (prouvée par tests curl pendant l'audit) et sont **exclus du chemin de déploiement**. Ne pas les activer sans réécriture complète de l'authentification.
 4. **Pas de synchronisation** : conception sans cloud. Une perte de l'ordinateur sans sauvegarde = perte des données. La procédure de sauvegarde ci-dessus est donc structurante.
 5. **Tests navigateur non automatisés** : 81 tests couvrent la logique pure, `npm run smoke` vérifie le rendu statique, mais l'UI n'a pas encore de tests E2E (Playwright/Cypress). Voir `docs/MISE-EN-PRODUCTION.md`.
-6. **Adresse de contact factice** : `contact@recovery-os.example` (TLD réservé) est un placeholder dans `src/config/brand.ts`, à remplacer avant toute mise en production.
+6. **Identité légale non renseignée** : `src/config/editor.ts` contient des placeholders (raison sociale, SIREN, adresse…). `npm run legal:check` échoue tant qu'ils subsistent et les pages affichent un bandeau « document non finalisé ». Voir `docs/CONFORMITE-LEGALE.md`.
+7. **Médiateur de la consommation non désigné** : obligatoire avant toute vente à un particulier (art. L616-1 C. conso.). Documenté dans les CGV.
 
 ## Licence
 

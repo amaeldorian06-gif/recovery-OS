@@ -154,10 +154,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
         <footer className="border-t border-white/10 py-8 text-center text-xs text-[#6B7D98]">
           <p>Revenue Recovery OS · Recouvrement d'impayés souverain · Hébergement des pages : Vercel — aucune donnée financière n'y transite.</p>
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+          <p className="mt-1">Offres réservées aux professionnels · TVA non applicable, art. 293 B du CGI.</p>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            {[
+              { label: 'Mentions légales', path: '/mentions-legales' },
+              { label: 'CGV', path: '/cgv' },
+              { label: 'Confidentialité', path: '/confidentialite' },
+              { label: 'Rétractation', path: '/retractation' },
+            ].map(link => (
+              <a
+                key={link.path}
+                href={link.path}
+                onClick={event => { event.preventDefault(); onNavigate(link.path); }}
+                className="underline hover:text-[#9AAAC0]"
+              >
+                {link.label}
+              </a>
+            ))}
             <a href={CONTACT_MAILTO} className="underline hover:text-[#9AAAC0]">{CONTACT_EMAIL}</a>
             <button onClick={() => onNavigate('/suivi')} className="underline hover:text-[#9AAAC0] cursor-pointer">
-              Suivi de progression du projet
+              Suivi du projet
             </button>
           </div>
         </footer>

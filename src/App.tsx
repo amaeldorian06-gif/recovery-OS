@@ -8,6 +8,7 @@ import { FeaturesPage } from './components/FeaturesPage';
 import { ProductPreview } from './components/ProductPreview';
 import { ProgressDashboard } from './components/ProgressDashboard';
 import { NotFoundPage } from './components/NotFoundPage';
+import { LegalNoticePage, TermsPage, PrivacyPage, WithdrawalPage } from './components/LegalPages';
 import { PricingPage } from './components/PricingPage';
 import { SignUpPage } from './components/SignUpPage';
 import { SignInPage } from './components/SignInPage';
@@ -78,6 +79,14 @@ function Shell() {
         return <ProgressDashboard onNavigate={navigate} />;
       case 'notfound':
         return <NotFoundPage onNavigate={navigate} path={pathname} />;
+      case 'legal':
+        return <LegalNoticePage onNavigate={navigate} />;
+      case 'terms':
+        return <TermsPage onNavigate={navigate} />;
+      case 'privacy':
+        return <PrivacyPage onNavigate={navigate} />;
+      case 'withdrawal':
+        return <WithdrawalPage onNavigate={navigate} />;
       case 'pricing':
         return <PricingPage onNavigate={navigate} />;
       case 'signup':

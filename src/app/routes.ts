@@ -19,6 +19,10 @@ export const PATH_ROUTES: Record<string, PublicRoute> = {
   '/tarifs': 'pricing',
   '/connexion': 'signin',
   '/inscription': 'signup',
+  '/mentions-legales': 'legal',
+  '/cgv': 'terms',
+  '/confidentialite': 'privacy',
+  '/retractation': 'withdrawal',
 };
 
 export type ResolvedRoute = { route: PublicRoute | 'app'; section: WorkspaceSection };

@@ -11,6 +11,9 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { NotFoundPage } from '../src/components/NotFoundPage';
 import { AppErrorBoundary, AppErrorScreen } from '../src/components/AppErrorBoundary';
+import { LegalNoticePage, TermsPage, PrivacyPage, WithdrawalPage } from '../src/components/LegalPages';
+import { PricingPage } from '../src/components/PricingPage';
+import { LandingPage } from '../src/components/LandingPage';
 
 let failures = 0;
 
@@ -51,6 +54,40 @@ check('Erreur : aucun « undefined » ni « NaN »', !screen.includes('undefined
 // 4. Contrat React du garde-fou : l'erreur capturée devient l'état de secours.
 const derived = AppErrorBoundary.getDerivedStateFromError(boom) as { error: Error };
 check('Boundary : getDerivedStateFromError conserve l’erreur', derived.error === boom);
+
+// 5. Documents légaux : rendu réel des quatre pages.
+const legalPages = [
+  { label: 'Mentions légales', render: <LegalNoticePage onNavigate={() => {}} />, marker: 'Éditeur du site' },
+  { label: 'CGV', render: <TermsPage onNavigate={() => {}} />, marker: 'Conditions générales de vente' },
+  { label: 'Confidentialité', render: <PrivacyPage onNavigate={() => {}} />, marker: 'Politique de confidentialité' },
+  { label: 'Rétractation', render: <WithdrawalPage onNavigate={() => {}} />, marker: 'Rétractation et garantie commerciale' },
+];
+
+for (const page of legalPages) {
+  const html = renderToStaticMarkup(page.render);
+  check(`${page.label} : page rendue`, html.includes(page.marker));
+  check(`${page.label} : aucun « undefined » ni « NaN »`, !html.includes('undefined') && !html.includes('NaN'));
+  check(`${page.label} : avertissement de non-finalisation visible`, html.includes('Document non finalisé'));
+  check(`${page.label} : sommaire présent`, html.includes('Sommaire'));
+}
+
+// 6. Rétractation : garantie commerciale B2B opérationnelle.
+const withdrawalHtml = renderToStaticMarkup(<WithdrawalPage onNavigate={() => {}} />);
+check('Rétractation : bouton de demande d’annulation', withdrawalHtml.includes('Demander l’annulation'));
+check('Rétractation : lien mailto construit', withdrawalHtml.includes('mailto:'));
+check('Rétractation : régime B2B rappelé', withdrawalHtml.includes('professionnels'));
+
+// 7. Périmètre commercial : le caractère B2B et la franchise de TVA sont
+// visibles AVANT l'achat, pas seulement enfouis dans les CGV.
+const pricingHtml = renderToStaticMarkup(<PricingPage onNavigate={() => {}} />);
+check('Tarifs : offres réservées aux professionnels', pricingHtml.includes('réservées aux professionnels'));
+check('Tarifs : mention de franchise de TVA', pricingHtml.includes('293 B'));
+check('Tarifs : plus aucune mention « Prix TTC » trompeuse', !pricingHtml.includes('Prix TTC'));
+check('Tarifs : les trois offres sont affichées', ['Essentiel', 'Professionnel', 'Cabinet'].every(p => pricingHtml.includes(p)));
+
+const landingHtml = renderToStaticMarkup(<LandingPage onNavigate={() => {}} />);
+check('Accueil : périmètre B2B rappelé', landingHtml.includes('réservées aux professionnels'));
+check('Accueil : liens légaux présents', ['/mentions-legales', '/cgv', '/confidentialite'].every(l => landingHtml.includes(l)));
 
 console.log(failures === 0 ? '\nSMOKE : tous les contrôles passent' : `\nSMOKE : ${failures} échec(s)`);
 process.exit(failures === 0 ? 0 : 1);
