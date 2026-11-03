@@ -32,17 +32,25 @@ npm run build       # 447 kB (gzip 127 kB), dist/404.html présent
 - `LicenseCard` et `BackupReminder` dépendent du contexte applicatif : leur **logique** est testée, leur **rendu** ne l'est pas hors navigateur.
 - La page 404 statique suppose que Vercel sert `404.html` à la racine de `dist` pour un statut 404. **À confirmer après déploiement** (`curl -I https://<domaine>/page-inexistante` doit renvoyer `404`).
 
-## Étape 2 — Juridique et commercial (BLOQUANT pour vendre)
+## Étape 2 — Juridique et commercial (RÉDIGÉ, à compléter par l'éditeur)
 
-| # | Tâche | Bloquant | Qui |
-|---|---|---|---|
-| 5 | Remplacer `contact@recovery-os.example` par l'adresse réelle | Oui | Vous |
-| 6 | Mentions légales : raison sociale, adresse, identifiant, contact | Oui (UE) | Vous (contenu) + moi (page) |
-| 7 | CGV : prix, durée, résiliation, droit de rétractation 14 jours | Oui (UE) | Vous (contenu) + moi (page) |
-| 8 | Politique de confidentialité : **aucune donnée financière transmise**, IndexedDB locale, Vercel = pages statiques uniquement | Oui (RGPD) | Moi |
-| 9 | Canal de vente : facturation manuelle + envoi de clé, ou lien de paiement Stripe | Oui | Décision à prendre |
+**Canaux décidés** : facturation manuelle + clé de licence générée par l'éditeur.
 
-Aucun encaissement ne fonctionne aujourd'hui : la clé est générée à l'inscription avec le plan `trial` et le produit n'a aucun lien de commande.
+| # | Livrable | État |
+|---|---|---|
+| 5 | Mentions légales (LCEN art. 1-1) | Rédigé — `/mentions-legales` |
+| 6 | CGV (18 articles, B2B + B2C) | Rédigé — `/cgv` |
+| 7 | Politique de confidentialité (RGPD) | Rédigé — `/confidentialite` |
+| 8 | Droit de rétractation + bouton L221-21 | Rédigé — `/retractation` |
+| 9 | Générateur de clés de vente | `npm run licence -- --plan pro` |
+
+**Ce qui reste, et qui n'appartient qu'à vous :**
+
+1. Renseigner `src/config/editor.ts` (raison sociale, SIREN, adresse, téléphone, e-mail, directeur de publication). `npm run legal:check` échoue tant que ce n'est pas fait.
+2. Adhérer à un médiateur de la consommation **si** vous vendez à des particuliers (art. L616-1).
+3. Faire relire les textes par un avocat avant une vente significative.
+
+Voir `docs/CONFORMITE-LEGALE.md` : sources, pièges évités (art. 6-III abrogé, plateforme ODR fermée, bouton de rétractation obligatoire depuis le 19 juin 2026) et zones grises assumées.
 
 ## Étape 3 — Preuve avant annonce publique
 

@@ -11,6 +11,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { NotFoundPage } from '../src/components/NotFoundPage';
 import { AppErrorBoundary, AppErrorScreen } from '../src/components/AppErrorBoundary';
+import { LegalNoticePage, TermsPage, PrivacyPage, WithdrawalPage } from '../src/components/LegalPages';
 
 let failures = 0;
 
@@ -51,6 +52,27 @@ check('Erreur : aucun « undefined » ni « NaN »', !screen.includes('undefined
 // 4. Contrat React du garde-fou : l'erreur capturée devient l'état de secours.
 const derived = AppErrorBoundary.getDerivedStateFromError(boom) as { error: Error };
 check('Boundary : getDerivedStateFromError conserve l’erreur', derived.error === boom);
+
+// 5. Documents légaux : rendu réel des quatre pages.
+const legalPages = [
+  { label: 'Mentions légales', render: <LegalNoticePage onNavigate={() => {}} />, marker: 'Éditeur du site' },
+  { label: 'CGV', render: <TermsPage onNavigate={() => {}} />, marker: 'Conditions générales de vente' },
+  { label: 'Confidentialité', render: <PrivacyPage onNavigate={() => {}} />, marker: 'Politique de confidentialité' },
+  { label: 'Rétractation', render: <WithdrawalPage onNavigate={() => {}} />, marker: 'Droit de rétractation' },
+];
+
+for (const page of legalPages) {
+  const html = renderToStaticMarkup(page.render);
+  check(`${page.label} : page rendue`, html.includes(page.marker));
+  check(`${page.label} : aucun « undefined » ni « NaN »`, !html.includes('undefined') && !html.includes('NaN'));
+  check(`${page.label} : avertissement de non-finalisation visible`, html.includes('Document non finalisé'));
+  check(`${page.label} : sommaire présent`, html.includes('Sommaire'));
+}
+
+// 6. Rétractation : la fonctionnalité exigée par le décret n° 2026-3 est présente.
+const withdrawalHtml = renderToStaticMarkup(<WithdrawalPage onNavigate={() => {}} />);
+check('Rétractation : bouton « Renoncer au contrat ici »', withdrawalHtml.includes('Renoncer au contrat ici'));
+check('Rétractation : lien mailto construit', withdrawalHtml.includes('mailto:'));
 
 console.log(failures === 0 ? '\nSMOKE : tous les contrôles passent' : `\nSMOKE : ${failures} échec(s)`);
 process.exit(failures === 0 ? 0 : 1);

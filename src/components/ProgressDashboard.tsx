@@ -100,7 +100,8 @@ const VERIFICATIONS: Array<{ label: string; result: string; ok: boolean }> = [
 
 const REMAINING = [
   'Remplacer l’adresse de contact placeholder (src/config/brand.ts) par l’adresse réelle du vendeur.',
-  'Rédiger mentions légales, CGV et politique de confidentialité (obligatoire pour vendre en UE).',
+  'Renseigner l’identité de l’éditeur (src/config/editor.ts) : npm run legal:check doit passer.',
+  'Adhérer à un médiateur de la consommation avant toute vente à un particulier (L616-1).',
   'Installer Playwright pour couvrir inscription → import → sauvegarde en navigation réelle.',
   'Renseigner VITE_SITE_URL sur le projet Vercel (domaine injecté au build, plus aucune édition manuelle).',
   'Intégrer un prestataire de paiement si la vente automatisée des licences est décidée.',

@@ -30,6 +30,12 @@ jobs:
       - name: Contrôle de rendu (smoke)
         run: npm run smoke
 
+      # Avertissement volontairement non bloquant tant que l'identité légale
+      # n'est pas renseignée ; ce contrôle DOIT passer avant une mise en vente.
+      - name: Complétude de l'identité légale (avertissement)
+        run: npm run legal:check
+        continue-on-error: true
+
       - name: Build de production
         run: npm run build
 
