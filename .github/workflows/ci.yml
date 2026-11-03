@@ -27,6 +27,9 @@ jobs:
       - name: Tests unitaires
         run: npm test
 
+      - name: Contrôle de rendu (smoke)
+        run: npm run smoke
+
       - name: Build de production
         run: npm run build
 

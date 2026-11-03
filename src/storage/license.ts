@@ -1,5 +1,5 @@
 import { LicenseInfo, LicensePlan } from './types';
-import { todayISO } from '../utils/dates';
+import { daysBetween, todayISO } from '../utils/dates';
 
 /**
  * Licence locale — transparence volontaire.
@@ -101,4 +101,16 @@ export function buildLicense(plan: LicensePlan, key: string): LicenseInfo {
     activatedAt: todayISO(),
     verification: 'locale',
   };
+}
+
+/** Durée de l'essai gratuit, en jours. */
+export const TRIAL_DURATION_DAYS = 14;
+
+/**
+ * Jours restants d'essai. `null` si la licence n'est pas un essai.
+ * Peut être négatif une fois l'essai échu (l'appelant décide de l'affichage).
+ */
+export function trialDaysLeft(license: LicenseInfo | null, today: string = todayISO()): number | null {
+  if (!license || license.plan !== 'trial') return null;
+  return TRIAL_DURATION_DAYS - daysBetween(license.activatedAt, today);
 }

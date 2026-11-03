@@ -118,6 +118,12 @@ export interface SettingsRecord {
   organizationId: string;
   defaultCurrency: string;
   creditSales90d?: number;
+  /**
+   * Date (ISO) du dernier export de sauvegarde réussi. Champ optionnel :
+   * les enregistrements créés avant son introduction restent valides.
+   * Sert uniquement au rappel de sauvegarde du tableau de bord.
+   */
+  lastBackupAt?: string;
   onboarding: {
     hasConfiguredCompany: boolean;
     hasImportedFile: boolean;

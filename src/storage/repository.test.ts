@@ -256,3 +256,26 @@ test('Paramètres : persistance et journalisation', async () => {
   assert.equal(settings.creditSales90d, 120000);
   assert.equal(settings.defaultCurrency, 'EUR');
 });
+
+test('Paramètres : lastBackupAt est persisté sans écraser les autres champs', async () => {
+  const repo = makeRepo();
+  await repo.init();
+  const org = await repo.registerUser({ fullName: 'A', email: 'a@a.fr', companyName: 'OrgA', password: 'MotDePasse2026!' });
+
+  const before = await repo.getSettings(org.organization.id);
+  assert.equal(before.lastBackupAt, undefined, 'aucune sauvegarde ne doit être inventée');
+
+  await repo.saveSettings(org.organization.id, { creditSales90d: 50000 });
+  const stamped = '2026-10-01T08:30:00.000Z';
+  await repo.saveSettings(org.organization.id, { lastBackupAt: stamped });
+
+  const after = await repo.getSettings(org.organization.id);
+  assert.equal(after.lastBackupAt, stamped);
+  assert.equal(after.creditSales90d, 50000, 'creditSales90d ne doit pas être perdu');
+  assert.equal(after.defaultCurrency, 'EUR');
+
+  // Une mise à jour ultérieure d'un autre champ conserve la date de sauvegarde.
+  await repo.saveSettings(org.organization.id, { defaultCurrency: 'EUR' });
+  const again = await repo.getSettings(org.organization.id);
+  assert.equal(again.lastBackupAt, stamped);
+});

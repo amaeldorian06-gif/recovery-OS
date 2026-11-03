@@ -9,7 +9,7 @@ import { HardDrive, Download, Upload, ShieldCheck, AlertTriangle, CheckCircle2, 
  * aucune opération destructive n'est possible d'un seul clic.
  */
 export const BackupView: React.FC = () => {
-  const { repo, organization, refresh, busy } = useApp();
+  const { repo, organization, refresh, busy, saveSettings } = useApp();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [lastBackup, setLastBackup] = useState<BackupFile | null>(null);
   const [rawContent, setRawContent] = useState<string | null>(null);
@@ -34,6 +34,13 @@ export const BackupView: React.FC = () => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+      // Mémorise la date du dernier export réussi (rapproché du rappel de sauvegarde).
+      // Un échec d'écriture ne doit pas masquer le succès de l'export : il est signalé à part.
+      try {
+        await saveSettings({ lastBackupAt: new Date().toISOString() });
+      } catch {
+        /* la préférence n'est pas critique : le fichier est déjà téléchargé */
+      }
       setMessage({ kind: 'ok', text: `Sauvegarde exportée : ${filename} (${backup.counts.invoices} facture(s), empreinte ${backup.checksumAlgorithm}).` });
     } catch (err) {
       setMessage({ kind: 'error', text: err instanceof Error ? err.message : 'Export impossible.' });

@@ -82,7 +82,8 @@ npm run build                           # build statique → dist/
 ## Procédure de déploiement (Vercel)
 
 ```bash
-npm run check     # typecheck + 59 tests + build
+npm run check     # typecheck + 81 tests + build
+npm run smoke     # contrôle de rendu (404, écran d'erreur) sans navigateur
 npx vercel --prod # ou import du dépôt GitHub dans Vercel
 ```
 
@@ -102,7 +103,8 @@ Le stockage utilise IndexedDB + Web Crypto — testez : Chrome, Firefox, Safari 
 2. **Courbe CRF** : heuristique interne de recouvrement (0,99 → 0,245 par tranche). **Ce n'est pas** une provision IFRS 9 / CECL et aucune conformité réglementaire n'est revendiquée.
 3. **Serveur legacy non déployé** : `server.ts` + `src/server/` (Express) survivent comme documentation historique. Ils contiennent une vérification de mot de passe défaillante (prouvée par tests curl pendant l'audit) et sont **exclus du chemin de déploiement**. Ne pas les activer sans réécriture complète de l'authentification.
 4. **Pas de synchronisation** : conception sans cloud. Une perte de l'ordinateur sans sauvegarde = perte des données. La procédure de sauvegarde ci-dessus est donc structurante.
-5. **Tests navigateur non automatisés** : la suite couvre la logique pure (59 tests). L'UI n'a pas de tests E2E (Playwright/Cypress) à ce stade.
+5. **Tests navigateur non automatisés** : 81 tests couvrent la logique pure, `npm run smoke` vérifie le rendu statique, mais l'UI n'a pas encore de tests E2E (Playwright/Cypress). Voir `docs/MISE-EN-PRODUCTION.md`.
+6. **Adresse de contact factice** : `contact@recovery-os.example` (TLD réservé) est un placeholder dans `src/config/brand.ts`, à remplacer avant toute mise en production.
 
 ## Licence
 
