@@ -9,7 +9,7 @@
 | Mentions légales | `/mentions-legales` | LCEN, art. **1-1** | 8 sections |
 | Conditions générales de vente | `/cgv` | C. conso. L111-1, L221-5, L221-18, L221-28 ; C. com. L441-1, L441-10, D441-5 | 18 articles |
 | Politique de confidentialité | `/confidentialite` | RGPD, art. 6, 13, 15-20 | 12 sections |
-| Droit de rétractation | `/retractation` | C. conso. L221-18, L221-21, L221-28 13°, L616-1 | 6 sections + bouton |
+| Rétractation et garantie commerciale | `/retractation` | C. conso. L221-18 (écarté en B2B) + garantie volontaire | 6 sections + bouton |
 
 Le contenu est isolé dans `src/content/legal.ts` (testable), l'identité dans `src/config/editor.ts` (source unique), la présentation dans `src/components/LegalDocumentPage.tsx`.
 
@@ -36,45 +36,59 @@ Le règlement (UE) 2024/3228 a fermé définitivement la plateforme européenne 
 
 Article L221-28, 13° : la rétractation ne disparaît que si le consommateur a **à la fois** accepté l'exécution immédiate **et** renoncé expressément à son droit. Une clause générale « pas de rétractation sur les services numériques » serait abusive. Le texte distingue explicitement les deux consentements.
 
-## 3. Ce qui reste à faire — et qui ne peut pas être fait sans vous
+## 3. Trois décisions prises (3 novembre 2026)
+
+### 3.1 Clientèle : **B2B exclusif**
+
+Décision : le service est vendu aux seuls professionnels. Conséquences appliquées dans les textes :
+
+| Obligation | Statut en B2B exclusif | Traitement |
+|---|---|---|
+| Information précontractuelle consommateur (L111-1) | Hors champ | CGV art. 1 : service réservé aux professionnels |
+| Droit de rétractation (L221-18) | Hors champ | CGV art. 10 : aucun droit légal — **mais** une garantie commerciale d'annulation de 14 jours est offerte volontairement |
+| Bouton de rétractation en ligne (L221-21, obligatoire depuis le 19/06/2026) | Hors champ | Conservé, reformulé en « Demander l'annulation » : il sert la garantie commerciale, pas une obligation légale |
+| Médiation de la consommation (L616-1) | Hors champ | Aucun médiateur requis ni désigné ; les CGV l'expliquent au lieu de le taire |
+| Garantie légale de conformité numérique (L224-25-12) | Hors champ | CGV art. 11 : garanties du Code civil (délivrance conforme 1604, vices cachés 1641) |
+
+**Si l'éditeur vend un jour à un particulier**, il devra : adhérer à un médiateur agréé CECMC, recueillir le double consentement de l'article L221-28 13°, et rétablir le libellé réglementaire « renoncer au contrat ici ». Le code est déjà structuré pour : `salesScope` dans `src/config/editor.ts` et branches conditionnelles dans `src/content/legal.ts`.
+
+### 3.2 TVA : **franchise en base**
+
+`vatExempt: true`. Les CGV portent la mention obligatoire « TVA non applicable, article 293 B du Code général des impôts » et les prix affichés sont les prix effectivement dus (aucune taxe ajoutée). Aucun numéro de TVA n'est réclamé par `legal:check`.
+
+### 3.3 Hébergement : numéro de téléphone
+
+La LCEN impose de publier le **nom, l'adresse et le numéro de téléphone** de l'hébergeur. Vercel ne publie qu'un seul numéro de son fait : celui de sa page DMCA officielle (`vercel.com/legal/dmca-policy`).
+
+Choix retenu : afficher `+1 559 288 7060` **en le qualifiant** — « ligne de signalement DMCA/abus publiée par l'hébergeur » — et ajouter `dmca@vercel.com` comme contact écrit vérifiable. Les numéros trouvés sur des annuaires tiers ((951) 383-6898, (415) 398-5463) n'ont pas été retenus : non vérifiables à la source.
+
+## 4. Ce qui reste à faire — et qui ne peut pas être fait sans vous
 
 `npm run legal:check` sort en **erreur** tant que ces champs sont vides :
 
 ```
 ✗ Raison sociale · Forme juridique · Capital social · SIREN/SIRET
-  Ville du greffe · Numéro de TVA · Adresse · Code postal · Ville
-  Téléphone · Directeur de la publication · E-mail de contact
-  Médiateur de la consommation
+  Ville du greffe · Adresse · Code postal · Ville · Téléphone
+  Directeur de la publication · E-mail de contact
 ```
+
+La TVA et le médiateur **ne sont plus réclamés** : la franchise en base dispense du numéro de TVA, et le B2B exclusif du médiateur.
 
 À renseigner dans **`src/config/editor.ts`** uniquement.
 
-### 3.1 Adhésion à un médiateur de la consommation — obligatoire en B2C
-
-Article L616-1 du Code de la consommation : tout professionnel vendant à des **consommateurs** doit adhérer à un médiateur agréé CECMC et publier ses coordonnées (article R616-1), sous peine de 3 000 € (PP) / 15 000 € (PM).
-
-Deux stratégies possibles :
-
-| Stratégie | Conséquence |
-|---|---|
-| **Vente B2B exclusive** (recommandée au lancement) | Pas d'adhésion obligatoire. Les CGV excluent les consommateurs et le bouton de rétractation devient une simple bonne pratique. |
-| **Vente B2C assumée** | Adhésion à un médiateur (quelques dizaines à quelques centaines d'euros par an) **avant** la première vente à un particulier. |
-
-Tant qu'aucun médiateur n'est désigné, les CGV **l'écrivent noir sur blanc** plutôt que de laisser croire à un recours inexistant.
-
-### 3.2 Autres points à valider
+### 4.1 Autres points à valider
 
 | # | Point | Pourquoi |
 |---|---|---|
-| 1 | Adresse et téléphone de l'hébergeur | L'adresse de Vercel provient de sa Privacy Notice ; le **numéro de téléphone** affiché est la ligne de signalement DMCA/abus et doit être revérifié sur `vercel.com/legal` avant publication. |
+| 1 | Adresse et téléphone de l'hébergeur | Adresse issue de la Privacy Notice Vercel ; numéro issu de `vercel.com/legal/dmca-policy`. Une vérification annuelle est conseillée : ces coordonnées peuvent changer. |
 | 2 | Durée d'abonnement et reconduction | Les CGV indiquent « un mois ou un an, sans reconduction tacite ». À ajuster selon votre pratique commerciale réelle. |
 | 3 | Plafond de responsabilité (12 mois de redevances) | Standard du secteur, mais à faire valider : une clause trop basse peut être jugée abusive face à un consommateur. |
-| 4 | TVA | `vatExempt: false` suppose l'assujettissement. En franchise en base, passez à `true` : la mention « TVA non applicable, art. 293 B du CGI » sera reprise automatiquement. |
+| 4 | TVA | `vatExempt: true` (franchise en base). Si l'activité dépasse les seuils de franchise, passer à `false` et renseigner `vatNumber` : la mention 293 B disparaît automatiquement. |
 | 5 | Registre des traitements (art. 30 RGPD) | Obligatoire dès lors que vous traitez des données, même peu. Non fourni ici : document interne, distinct des pages publiques. |
 | 6 | Assurance responsabilité civile professionnelle | Fortement recommandée pour un éditeur de logiciel. |
 | 7 | Contrat de sous-traitance avec Vercel (DPA) | À accepter dans votre espace Vercel pour couvrir l'hébergement. |
 
-## 4. Réserves à assumer
+## 5. Réserves à assumer
 
 **Ces textes ne constituent pas une consultation juridique.** Ils sont rédigés sur la base des textes en vigueur au 3 novembre 2026 et vérifiables (références citées), mais un avocat doit les relire avant toute mise en vente significative. Un document contractuel mal adapté à votre pratique réelle est plus dangereux qu'un document absent : il crée des obligations que vous n'appliquez pas.
 
@@ -84,12 +98,14 @@ Tant qu'aucun médiateur n'est désigné, les CGV **l'écrivent noir sur blanc**
 - Pas de clause d'audit ni de sécurité renforcée.
 - Le bouton de rétractation n'émet **pas** d'accusé de réception sur support durable : sans serveur, c'est l'e-mail envoyé par le client qui joue ce rôle. Cette limite est écrite sur la page.
 
-## 5. Vérifications automatisées
+## 6. Vérifications automatisées
 
-`src/content/legal.test.ts` — 17 tests qui échouent si :
+`src/content/legal.test.ts` — 22 tests qui échouent si :
 - l'article 6-III est présenté comme le fondement (au lieu de l'article 1-1) ;
 - un lien vers la plateforme ODR réapparaît ;
-- les articles L221-18, L221-28 13°, L221-21, L224-25-12, L441-1, L441-10, D441-5, L616-1 disparaissent ;
+- le périmètre B2B cesse d'être explicite, ou si un médiateur est réclamé à tort ;
+- la mention de franchise de TVA (art. 293 B du CGI) disparaît ;
+- les articles L221-18, L224-25-12, L441-1, L441-10, D441-5, L616-1 disparaissent ;
 - les prix des CGV divergent des plans réels du produit (`PLAN_DETAILS`) ;
 - une mention présente les indicateurs comme conformes IFRS 9 / CECL ;
 - une clause de sauvegarde cesse d'affirmer que l'éditeur ne peut rien restaurer ;

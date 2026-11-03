@@ -90,11 +90,19 @@ test('CGV : les mentions B2B du Code de commerce sont présentes', () => {
   assert.match(cgv, /soixante jours|45 jours|quarante-cinq jours/i, 'plafonds légaux de paiement');
 });
 
-test('CGV : le droit de rétractation et son exception numérique sont correctement articulés', () => {
-  assert.match(cgv, /L221-18/, 'délai de quatorze jours');
-  assert.match(cgv, /L221-28, 13°/, 'exception pour contenu numérique sans support matériel');
+test('CGV : la vente est expressément réservée aux professionnels', () => {
+  assert.match(cgv, /réservé aux professionnels/i, 'le périmètre B2B doit être explicite');
+  assert.match(cgv, /ne sont pas proposées aux consommateurs/i);
+  assert.match(cgv, /Code de la consommation/, 'les exclusions applicables doivent être nommées');
+  assert.match(cgv, /L221-18/, 'le droit de rétractation est cité pour être écarté en B2B');
+  assert.match(cgv, /aucun droit de rétractation/i);
+});
+
+test('CGV : une garantie commerciale de 14 jours est offerte au-delà du droit commun', () => {
+  assert.match(cgv, /garantie commerciale/i);
   assert.match(cgv, /quatorze jours/);
-  assert.match(cgv, /professionnels n’ouvrent pas de droit de rétractation/, 'le B2B doit être exclu explicitement');
+  assert.match(cgv, /ne crée pas un droit de rétractation au sens du Code de la consommation/, 'la garantie ne doit pas être présentée comme légale');
+  assert.match(cgv, /désactivation de la clé/i, 'l’effet sur la licence doit être décrit');
 });
 
 test('CGV : la garantie légale de conformité du numérique est visée', () => {
@@ -149,25 +157,40 @@ test('Confidentialité : aucun traceur publicitaire et pas de bandeau de cookies
   assert.match(privacy, /strictement nécessaire/);
 });
 
-test('Rétractation : la fonctionnalité en ligne de 2026 est expliquée', () => {
-  assert.match(withdrawal, /L221-21/, 'fonction de rétractation en ligne');
-  assert.match(withdrawal, /ordonnance n° 2026-2/, 'texte d’origine');
-  assert.match(withdrawal, /19 juin 2026/, 'date d’entrée en vigueur');
-  assert.match(withdrawal, /renoncer au contrat ici|Renoncer au contrat ici/i, 'formulation attendue par le décret');
-  assert.match(withdrawal, /L221-28, 13°/, 'exception numérique rappelée');
-  assert.match(withdrawal, /L221-18/, 'délai de quatorze jours');
-  assert.match(withdrawal, /formulaire type/i, 'formulaire de rétractation fourni');
+test('Rétractation : le régime B2B est expliqué sans ambiguïté', () => {
+  assert.match(withdrawal, /L221-18/, 'le fondement du droit écarté est cité');
+  assert.match(withdrawal, /réservé aux consommateurs/i);
+  assert.match(withdrawal, /exclusivement auprès de professionnels/i);
+  assert.match(withdrawal, /aucun droit de rétractation légal/i);
 });
 
-test('Rétractation : l’exception numérique est présentée comme conditionnelle, jamais automatique', () => {
-  assert.match(withdrawal, /ne s’applique jamais d’office/);
-  assert.match(withdrawal, /Si vous ne l’avez pas donnée, le délai de quatorze jours s’applique/);
+test('Rétractation : la garantie commerciale de 14 jours est présentée comme volontaire', () => {
+  assert.match(withdrawal, /garantie commerciale d’annulation/i);
+  assert.match(withdrawal, /ne constitue pas un droit de rétractation au sens du Code de la consommation/);
+  assert.match(withdrawal, /quatorze jours/);
+  assert.match(withdrawal, /formulaire type/i, 'un formulaire doit rester disponible');
+  assert.match(withdrawal, /remboursement/i, 'les effets financiers doivent être décrits');
 });
 
-test('Médiation : la défaillance de médiateur est annoncée explicitement plutôt que masquée', () => {
-  assert.match(cgv, /L616-1/, 'recours au médiateur de la consommation');
-  // Tant qu'aucun médiateur n'est désigné, le document doit le dire.
-  if (!/Médiateur compétent :/.test(cgv)) {
-    assert.match(cgv, /n’est pas encore désigné/, 'l’absence de médiateur doit être visible, pas silencieuse');
-  }
+test('Rétractation : les données locales ne sont pas affectées par la désactivation', () => {
+  assert.match(withdrawal, /ni consultées, ni modifiées, ni supprimées/);
+});
+
+test('Médiation : l’exclusion du régime consommateur est motivée, pas silencieuse', () => {
+  assert.match(cgv, /L616-1/, 'le texte écarté doit être cité');
+  assert.match(cgv, /ne s’applique qu’aux litiges opposant un professionnel à un consommateur/);
+  assert.match(cgv, /Aucun médiateur de la consommation n’est désigné/);
+  assert.match(cgv, /n’étant pas requise pour les ventes entre professionnels/);
+});
+
+test('TVA : la franchise en base est répercutée dans les CGV', () => {
+  assert.match(cgv, /293 B/, 'la mention de l’article 293 B du CGI est obligatoire en franchise');
+  assert.match(cgv, /TVA non applicable/);
+  assert.match(cgv, /aucune taxe n’est ajoutée/i, 'le prix affiché doit être le prix dû');
+});
+
+test('Mentions légales : le numéro de l’hébergeur est qualifié, sans laisser croire à un standard', () => {
+  assert.match(mentions, /559 288 7060/);
+  assert.match(mentions, /DMCA\/abus/, 'la nature de la ligne doit être indiquée');
+  assert.match(mentions, /dmca@vercel\.com/, 'un contact écrit vérifiable doit être fourni');
 });

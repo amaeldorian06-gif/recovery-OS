@@ -25,17 +25,17 @@ export const PrivacyPage: React.FC<PageProps> = ({ onNavigate }) => (
 
 const buildWithdrawalBody = (): string =>
   [
-    `Objet : Rétractation — ${PRODUCT}`,
+    `Objet : Annulation de commande — ${PRODUCT}`,
     '',
-    'Je vous notifie par la présente ma rétractation du contrat portant sur la fourniture du service suivant :',
+    'Je vous notifie l’annulation de ma commande portant sur le service suivant :',
     `Service : ${PRODUCT}`,
     'Offre souscrite : [à compléter]',
     'Date de commande : [à compléter]',
     'Date de réception de la clé : [à compléter]',
     '',
-    'Nom du consommateur : [à compléter]',
-    'Adresse : [à compléter]',
-    'Adresse électronique du compte : [à compléter]',
+    'Société : [à compléter]',
+    'Contact et adresse : [à compléter]',
+    'Clé de licence : [à compléter]',
     '',
     `Date : ${new Date().toLocaleDateString('fr-FR')}`,
     '',
@@ -45,7 +45,7 @@ const buildWithdrawalBody = (): string =>
 const WithdrawalAction: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const body = useMemo(buildWithdrawalBody, []);
-  const mailto = `mailto:${EDITOR.email}?subject=${encodeURIComponent(`Rétractation — ${PRODUCT}`)}&body=${encodeURIComponent(body)}`;
+  const mailto = `mailto:${EDITOR.email}?subject=${encodeURIComponent(`Annulation de commande — ${PRODUCT}`)}&body=${encodeURIComponent(body)}`;
 
   const copy = async () => {
     try {
@@ -61,7 +61,7 @@ const WithdrawalAction: React.FC = () => {
       <div className="flex items-start gap-2.5">
         <Undo2 className="w-4 h-4 shrink-0 mt-0.5 text-[#38BDF8]" />
         <div>
-          <p className="text-[13px] font-semibold text-[#F4F7FB]">Fonctionnalité de rétractation en ligne</p>
+          <p className="text-[13px] font-semibold text-[#F4F7FB]">Demander l’annulation (14 jours)</p>
           <p className="text-[12.5px] text-[#9AAAC0] mt-1">
             Le bouton ci-dessous ouvre un message déjà rédigé, adressé à l’éditeur. Envoyez-le :
             votre demande est horodatée par votre messagerie, ce qui constitue une preuve d’envoi.
@@ -74,7 +74,7 @@ const WithdrawalAction: React.FC = () => {
           href={mailto}
           className="px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-semibold flex items-center gap-2"
         >
-          <Mail className="w-4 h-4" /> Renoncer au contrat ici
+          <Mail className="w-4 h-4" /> Demander l’annulation
         </a>
         <button
           onClick={() => void copy()}
@@ -86,10 +86,10 @@ const WithdrawalAction: React.FC = () => {
       </div>
 
       <p className="text-[11px] text-[#6B7D98] leading-relaxed">
-        Limite assumée : sans serveur, le site ne peut pas émettre automatiquement un accusé de
-        réception sur support durable. L’e-mail que vous envoyez, conservé dans votre boîte
-        d’envoi, remplit cette fonction. Si vous préférez un autre canal, toute notification
-        écrite (courrier, formulaire type) produit les mêmes effets.
+        Garantie commerciale volontaire, accordée aux clients professionnels : elle ne constitue
+        pas un droit de rétractation au sens du Code de la consommation. Sans serveur, le site ne
+        peut pas émettre d’accusé de réception automatique : l’e-mail conservé dans votre boîte
+        d’envoi en tient lieu.
       </p>
     </div>
   );

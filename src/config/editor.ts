@@ -24,6 +24,9 @@ export interface MediatorInfo {
   phone?: string;
 }
 
+/** Clientèle visée. Décide des obligations applicables (médiation, rétractation). */
+export type SalesScope = 'b2b' | 'b2c';
+
 export interface EditorInfo {
   /** Dénomination sociale ou nom commercial de l'éditeur. */
   legalName: string;
@@ -47,6 +50,13 @@ export interface EditorInfo {
   email: string;
   /** Directeur de la publication (représentant légal). */
   publicationDirector: string;
+  /**
+   * Clientèle visée : 'b2b' (professionnels uniquement) ou 'b2c'.
+   * En 'b2b', la médiation de la consommation (art. L616-1) et le droit de
+   * rétractation (art. L221-18) ne s'appliquent pas : ils ne bénéficient
+   * qu'aux consommateurs.
+   */
+  salesScope: SalesScope;
   /** Médiateur de la consommation agréé CECMC — obligatoire en vente B2C. */
   mediator: MediatorInfo | null;
 }
@@ -58,7 +68,7 @@ export const EDITOR: EditorInfo = {
   siren: '[SIREN / SIRET]',
   rcsCity: '[VILLE DU GREFFE]',
   vatNumber: '[N° TVA INTRACOMMUNAUTAIRE]',
-  vatExempt: false,
+  vatExempt: true,
   address: '[ADRESSE DU SIÈGE]',
   postalCode: '[CODE POSTAL]',
   city: '[VILLE]',
@@ -66,6 +76,7 @@ export const EDITOR: EditorInfo = {
   phone: '[TÉLÉPHONE]',
   email: 'contact@recovery-os.example',
   publicationDirector: '[NOM DU DIRECTEUR DE LA PUBLICATION]',
+  salesScope: 'b2b',
   mediator: null,
 };
 
@@ -78,7 +89,16 @@ export const EDITOR: EditorInfo = {
 export const HOST = {
   name: 'Vercel Inc.',
   address: '440 N Barranca Avenue #4133, Covina, CA 91723, États-Unis',
+  /**
+   * Numéro publié par l'hébergeur sur sa page DMCA officielle
+   * (vercel.com/legal/dmca-policy). C'est le seul numéro que Vercel publie
+   * lui-même : les autres numéros trouvés sur des annuaires tiers ne sont pas
+   * vérifiables. Sa nature est indiquée dans les mentions légales plutôt que
+   * de laisser croire à un standard commercial.
+   */
   phone: '+1 559 288 7060',
+  phoneNote: 'ligne de signalement DMCA/abus publiée par l’hébergeur',
+  email: 'dmca@vercel.com',
   website: 'https://vercel.com',
   /** Région d'exécution des fonctions ; le site est servi en statique depuis un CDN. */
   infrastructure: 'réseau de diffusion (CDN) mondial, journaux techniques conservés par l’hébergeur',
@@ -123,7 +143,13 @@ export function missingLegalFields(): string[] {
     .map(([label]) => label);
 
   if (EDITOR.email.endsWith('.example')) missing.push('Adresse e-mail de contact');
-  if (!EDITOR.mediator) missing.push('Médiateur de la consommation (obligatoire en vente aux particuliers)');
+
+  // Obligation propre à la vente aux consommateurs (art. L616-1 C. conso.).
+  // En B2B exclusif, aucun médiateur n'est requis : ne pas le réclamer évite
+  // de bloquer une mise en vente conforme.
+  if (EDITOR.salesScope === 'b2c' && !EDITOR.mediator) {
+    missing.push('Médiateur de la consommation (obligatoire en vente aux particuliers)');
+  }
 
   return missing;
 }

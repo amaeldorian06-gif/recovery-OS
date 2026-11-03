@@ -34,21 +34,21 @@ npm run build       # 447 kB (gzip 127 kB), dist/404.html présent
 
 ## Étape 2 — Juridique et commercial (RÉDIGÉ, à compléter par l'éditeur)
 
-**Canaux décidés** : facturation manuelle + clé de licence générée par l'éditeur.
+**Décisions du 3 novembre 2026** : facturation manuelle + clé générée par l'éditeur · **vente B2B exclusive** · **franchise de TVA** (art. 293 B du CGI).
 
 | # | Livrable | État |
 |---|---|---|
 | 5 | Mentions légales (LCEN art. 1-1) | Rédigé — `/mentions-legales` |
 | 6 | CGV (18 articles, B2B + B2C) | Rédigé — `/cgv` |
 | 7 | Politique de confidentialité (RGPD) | Rédigé — `/confidentialite` |
-| 8 | Droit de rétractation + bouton L221-21 | Rédigé — `/retractation` |
+| 8 | Rétractation (B2B : aucune légale) + **garantie commerciale de 14 jours** | Rédigé — `/retractation` |
 | 9 | Générateur de clés de vente | `npm run licence -- --plan pro` |
 
 **Ce qui reste, et qui n'appartient qu'à vous :**
 
 1. Renseigner `src/config/editor.ts` (raison sociale, SIREN, adresse, téléphone, e-mail, directeur de publication). `npm run legal:check` échoue tant que ce n'est pas fait.
-2. Adhérer à un médiateur de la consommation **si** vous vendez à des particuliers (art. L616-1).
-3. Faire relire les textes par un avocat avant une vente significative.
+2. Faire relire les textes par un avocat avant une vente significative.
+3. Si la vente aux particuliers est décidée plus tard : médiateur CECMC obligatoire, `salesScope: 'b2c'`, double consentement L221-28 13°.
 
 Voir `docs/CONFORMITE-LEGALE.md` : sources, pièges évités (art. 6-III abrogé, plateforme ODR fermée, bouton de rétractation obligatoire depuis le 19 juin 2026) et zones grises assumées.
 

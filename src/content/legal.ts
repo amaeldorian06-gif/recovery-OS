@@ -13,6 +13,9 @@ import { PLAN_DETAILS } from '../storage/license';
  * faire valider et les zones grises assumées.
  */
 
+/** Vente exclusivement entre professionnels (décision produit). */
+const B2B_ONLY = EDITOR.salesScope === 'b2b';
+
 export interface LegalSection {
   id: string;
   title: string;
@@ -22,17 +25,26 @@ export interface LegalSection {
   link?: { label: string; path: string };
 }
 
+const priceLine = (label: string, price: number, seats: number): string =>
+  `${label} : ${price} € ${EDITOR.vatExempt ? '' : 'HT '}par mois et par organisation, ` +
+  `${seats} poste${seats > 1 ? 's' : ''}.`;
+
 const priceList = (): string[] => [
-  `Essai gratuit : 0 € pendant 14 jours, sans carte bancaire.`,
-  `Essentiel : ${PLAN_DETAILS.essentiel.priceMonthly} € HT par mois et par organisation, ${PLAN_DETAILS.essentiel.seats} poste.`,
-  `Professionnel : ${PLAN_DETAILS.pro.priceMonthly} € HT par mois et par organisation, ${PLAN_DETAILS.pro.seats} postes.`,
-  `Cabinet : ${PLAN_DETAILS.cabinet.priceMonthly} € HT par mois et par organisation, ${PLAN_DETAILS.cabinet.seats} postes.`,
+  'Essai gratuit : 0 € pendant 14 jours, sans carte bancaire.',
+  priceLine('Essentiel', PLAN_DETAILS.essentiel.priceMonthly, PLAN_DETAILS.essentiel.seats),
+  priceLine('Professionnel', PLAN_DETAILS.pro.priceMonthly, PLAN_DETAILS.pro.seats),
+  priceLine('Cabinet', PLAN_DETAILS.cabinet.priceMonthly, PLAN_DETAILS.cabinet.seats),
 ];
 
+/**
+ * Franchise en base : aucune TVA n'est facturée, la mention de l'article 293 B
+ * du CGI est obligatoire sur les factures. Les prix affichés n'étant majorés
+ * d'aucune taxe, la distinction HT/TTC n'a pas lieu d'être.
+ */
 const vatSentence = (): string =>
   EDITOR.vatExempt
-    ? 'TVA non applicable, article 293 B du Code général des impôts.'
-    : 'Les prix sont indiqués hors taxes ; la TVA au taux en vigueur est ajoutée sur la facture. Les clients particuliers se voient communiquer le prix toutes taxes comprises avant toute commande.';
+    ? 'TVA non applicable, article 293 B du Code général des impôts. Les prix affichés sont les prix effectivement dus : aucune taxe n’est ajoutée sur la facture.'
+    : 'Les prix sont indiqués hors taxes ; la TVA au taux en vigueur est ajoutée sur la facture.';
 
 /* ------------------------------------------------------------------ */
 /* Mentions légales — LCEN, article 1-1                                */
@@ -80,7 +92,8 @@ export const LEGAL_NOTICE_SECTIONS: LegalSection[] = [
     list: [
       HOST.name,
       HOST.address,
-      `Téléphone : ${HOST.phone}`,
+      `Téléphone : ${HOST.phone} (${HOST.phoneNote})`,
+      `Courriel : ${HOST.email}`,
       `Site : ${HOST.website}`,
     ],
   },
@@ -128,6 +141,12 @@ export const TERMS_SECTIONS: LegalSection[] = [
     title: '1. Objet et champ d’application',
     paragraphs: [
       `Les présentes conditions générales de vente régissent la fourniture de licences d’utilisation du logiciel ${PRODUCT} par ${EDITOR.legalName} (ci-après « l’Éditeur ») à ses clients (ci-après « le Client »).`,
+      ...(B2B_ONLY
+        ? [
+            'Le service est réservé aux professionnels. Le Client déclare agir dans le cadre de son activité professionnelle et disposer de la capacité de contracter à cette fin. Les offres ne sont pas proposées aux consommateurs au sens de l’article liminaire du Code de la consommation.',
+            'En conséquence, les dispositions du Code de la consommation relatives à l’information précontractuelle, au droit de rétractation et à la médiation de la consommation ne s’appliquent pas aux relations nouées au titre des présentes. Si un contrat était néanmoins conclu avec un consommateur, les dispositions légales impératives qui le protègent prévaudraient sur toute clause contraire.',
+          ]
+        : []),
       'Elles s’appliquent de plein droit à toute commande. Toute condition contraire du Client est inopposable à l’Éditeur, sauf acceptation écrite et préalable.',
       'Le Client reconnaît avoir pris connaissance des présentes conditions avant la conclusion du contrat. En application de l’article L441-1 du Code de commerce, elles sont communiquées à tout acheteur professionnel qui en fait la demande.',
     ],
@@ -202,22 +221,35 @@ export const TERMS_SECTIONS: LegalSection[] = [
   },
   {
     id: 'retractation',
-    title: '10. Droit de rétractation',
+    title: '10. Absence de rétractation — garantie commerciale de 14 jours',
     paragraphs: [
-      'Le droit de rétractation ne bénéficie qu’aux personnes physiques agissant à des fins n’entrant pas dans le cadre de leur activité commerciale, industrielle, artisanale ou libérale (« consommateurs »). Les contrats conclus entre professionnels n’ouvrent pas de droit de rétractation.',
-      'Pour un client consommateur, le délai de rétractation est de quatorze jours à compter de la conclusion du contrat, conformément à l’article L221-18 du Code de la consommation.',
-      'Conformément à l’article L221-28, 13° du même code, ce droit ne peut être exercé pour la fourniture d’un contenu numérique sans support matériel lorsque l’exécution a commencé avec l’accord préalable exprès du consommateur et son renoncement exprès à son droit de rétractation. Ce double accord est recueilli avant la communication de la clé ; à défaut, le délai de quatorze jours s’applique.',
-      'Les modalités concrètes d’exercice figurent sur la page de rétractation.',
+      'Le droit de rétractation de quatorze jours prévu par l’article L221-18 du Code de la consommation est réservé aux consommateurs. Les contrats conclus entre professionnels dans le cadre de leur activité n’ouvrent aucun droit de rétractation.',
+      ...(B2B_ONLY
+        ? [
+            'Les présentes ventes étant réservées aux professionnels, aucune rétractation légale ne s’applique.',
+          ]
+        : [
+            'Pour un client consommateur, le délai de rétractation est de quatorze jours à compter de la conclusion du contrat (article L221-18). Conformément à l’article L221-28, 13°, ce droit ne peut être écarté pour un contenu numérique sans support matériel que si le consommateur a accepté l’exécution immédiate et renoncé expressément à son droit.',
+          ]),
+      'Indépendamment de toute obligation légale, l’Éditeur accorde au Client une garantie commerciale d’annulation : toute commande peut être annulée par simple demande écrite dans les quatorze jours suivant sa date de facturation, pour quelque motif que ce soit.',
+      'Cette garantie commerciale s’exerce sans pénalité. Elle emporte le remboursement intégral des sommes versées au titre de la période concernée et la désactivation de la clé de licence correspondante. Les données saisies par le Client dans son navigateur ne sont ni affectées ni supprimées par cette désactivation.',
+      'Il s’agit d’un engagement volontaire de l’Éditeur, qui ne crée pas un droit de rétractation au sens du Code de la consommation. Ses modalités pratiques figurent sur la page dédiée.',
     ],
-    link: { label: 'Exercer mon droit de rétractation', path: '/retractation' },
+    link: { label: 'Demander une annulation (14 jours)', path: '/retractation' },
   },
   {
     id: 'conformite',
-    title: '11. Garantie légale de conformité',
+    title: '11. Conformité et garanties',
     paragraphs: [
-      'Le Client consommateur bénéficie de la garantie légale de conformité applicable aux contenus et services numériques (articles L224-25-12 et suivants du Code de la consommation). Il peut obtenir la mise en conformité du logiciel ou, à défaut, une réduction du prix ou la résolution du contrat dans les conditions prévues par ces articles.',
+      ...(B2B_ONLY
+        ? [
+            'La garantie légale de conformité des contenus et services numériques (articles L224-25-12 et suivants du Code de la consommation) ne s’applique qu’aux consommateurs. Les relations entre l’Éditeur et le Client professionnel relèvent des garanties de droit commun du Code civil, notamment de l’obligation de délivrance conforme (article 1604) et de la garantie des vices cachés (article 1641 et suivants).',
+          ]
+        : [
+            'Le Client consommateur bénéficie de la garantie légale de conformité applicable aux contenus et services numériques (articles L224-25-12 et suivants du Code de la consommation). Le Client professionnel relève des garanties de droit commun du Code civil (délivrance conforme, article 1604 ; vices cachés, article 1641 et suivants).',
+          ]),
       'L’Éditeur informe le Client des mises à jour nécessaires au maintien de la conformité du logiciel et l’indemnise en cas de défaut de conformité résultant d’une telle mise à jour.',
-      'Les dispositions du présent article ne s’appliquent pas aux clients professionnels, pour lesquels les garanties légales du Code civil s’appliquent dans leur régime de droit commun.',
+      'Le logiciel est fourni avec sa documentation en ligne. Le Client reconnaît avoir vérifié que sa configuration technique (navigateur récent prenant en charge IndexedDB et Web Crypto) est compatible avant toute commande.',
     ],
   },
   {
@@ -257,13 +289,22 @@ export const TERMS_SECTIONS: LegalSection[] = [
   },
   {
     id: 'reclamations',
-    title: '16. Réclamations et médiation',
+    title: '16. Réclamations et règlement des litiges',
     paragraphs: [
       `Toute réclamation doit être adressée par écrit à ${EDITOR.email}. L’Éditeur s’engage à en accuser réception et à y répondre dans un délai de quinze jours ouvrés.`,
-      'Conformément à l’article L616-1 du Code de la consommation, le Client consommateur peut recourir gratuitement à un médiateur de la consommation agréé, après une réclamation écrite préalable restée sans solution satisfaisante.',
-      EDITOR.mediator
-        ? `Médiateur compétent : ${EDITOR.mediator.name}, ${EDITOR.mediator.address}, ${EDITOR.mediator.website}.`
-        : 'le médiateur compétent n’est pas encore désigné : cette information sera communiquée avant toute vente à un consommateur.',
+      ...(B2B_ONLY
+        ? [
+            'La médiation de la consommation prévue à l’article L616-1 du Code de la consommation ne s’applique qu’aux litiges opposant un professionnel à un consommateur. Les litiges entre professionnels en sont exclus : les parties rechercheront d’abord une solution amiable, puis saisiront la juridiction compétente selon l’article 17.',
+            EDITOR.mediator
+              ? `À titre volontaire, l’Éditeur reste disponible pour une médiation conventionnelle : ${EDITOR.mediator.name}, ${EDITOR.mediator.address}, ${EDITOR.mediator.website}.`
+              : 'Aucun médiateur de la consommation n’est désigné, cette désignation n’étant pas requise pour les ventes entre professionnels.',
+          ]
+        : [
+            'Conformément à l’article L616-1 du Code de la consommation, le Client consommateur peut recourir gratuitement à un médiateur de la consommation agréé, après une réclamation écrite préalable restée sans solution satisfaisante.',
+            EDITOR.mediator
+              ? `Médiateur compétent : ${EDITOR.mediator.name}, ${EDITOR.mediator.address}, ${EDITOR.mediator.website}.`
+              : 'Le médiateur compétent n’est pas encore désigné : cette information sera communiquée avant toute vente à un consommateur.',
+          ]),
       'La plateforme européenne de règlement en ligne des litiges (RLL/ODR) a été fermée définitivement le 20 juillet 2025 : aucun lien vers ce service n’est donc proposé.',
     ],
   },
@@ -417,52 +458,55 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
 export const WITHDRAWAL_SECTIONS: LegalSection[] = [
   {
     id: 'principe',
-    title: '1. Principe',
+    title: '1. Ventes entre professionnels : pas de droit de rétractation',
     paragraphs: [
-      'Si vous agissez en qualité de consommateur — c’est-à-dire de personne physique n’agissant pas dans le cadre de votre activité professionnelle — vous disposez en principe d’un délai de quatorze jours pour vous rétracter, sans avoir à justifier votre décision ni à payer de pénalité (article L221-18 du Code de la consommation).',
-      'Ce délai court à compter de la conclusion du contrat, c’est-à-dire du jour de votre commande.',
+      'Le droit de rétractation de quatorze jours prévu par l’article L221-18 du Code de la consommation est réservé aux consommateurs, c’est-à-dire aux personnes physiques agissant à des fins n’entrant pas dans le cadre de leur activité professionnelle.',
+      `${PRODUCT} est commercialisé exclusivement auprès de professionnels. Les contrats conclus dans ce cadre n’ouvrent donc aucun droit de rétractation légal, et le délai de quatorze jours ne court pas.`,
+      'Cette exclusion n’est pas une clause imposée au Client : elle résulte de la nature même du contrat, conclu entre deux professionnels dans le cadre de leur activité.',
     ],
   },
   {
-    id: 'exclusion',
-    title: '2. Exception applicable aux contenus numériques',
+    id: 'garantie',
+    title: '2. Garantie commerciale d’annulation de 14 jours',
     paragraphs: [
-      'Conformément à l’article L221-28, 13° du Code de la consommation, le droit de rétractation ne peut être exercé pour la fourniture d’un contenu numérique sans support matériel lorsque deux conditions sont réunies : vous avez accepté que l’exécution commence avant la fin du délai de quatorze jours, et vous avez renoncé expressément à votre droit de rétractation.',
-      'Cette double acceptation est recueillie par écrit avant la communication de votre clé de licence. Si vous ne l’avez pas donnée, le délai de quatorze jours s’applique normalement et vous pouvez vous rétracter.',
-      'L’exception ne s’applique jamais d’office : une clause qui exclurait la rétractation sans ce double accord exprès serait inopposable.',
+      'Indépendamment de toute obligation légale, l’Éditeur accorde une garantie commerciale d’annulation : toute commande peut être annulée par simple demande écrite dans les quatorze jours suivant sa date de facturation, sans avoir à se justifier et sans pénalité.',
+      'Cette garantie est plus favorable que le droit commun applicable aux ventes entre professionnels. Elle ne constitue pas un droit de rétractation au sens du Code de la consommation et ne peut être invoquée comme telle.',
+      'Elle s’applique à la première commande comme aux renouvellements, y compris lorsque la clé de licence a déjà été communiquée.',
     ],
   },
   {
     id: 'exercice',
-    title: '3. Comment exercer votre droit',
+    title: '3. Comment demander l’annulation',
     paragraphs: [
-      'Depuis le 19 juin 2026, la réglementation impose aux professionnels concluant des contrats à distance par une interface en ligne avec des consommateurs de mettre à disposition une fonctionnalité de rétractation gratuite et directement accessible (article L221-21 du Code de la consommation, modifié par l’ordonnance n° 2026-2 du 5 janvier 2026).',
-      'Les ventes de Revenue Recovery OS sont conclues par échange écrit — facture puis règlement — et non par une interface de paiement en ligne. Le bouton ci-dessous est néanmoins fourni pour vous permettre d’exercer votre droit en un clic.',
-      'La fonctionnalité est identifiée par les mots « renoncer au contrat ici » et reste accessible pendant toute la durée du délai de rétractation.',
-      'Vous pouvez également notifier votre rétractation par tout moyen écrit, y compris le formulaire type reproduit plus bas.',
+      'Le bouton ci-dessous ouvre un message déjà rédigé, adressé à l’éditeur. Envoyez-le : votre demande est horodatée par votre messagerie, ce qui constitue une preuve d’envoi.',
+      'Toute autre forme écrite produit le même effet : courriel direct, courrier, ou le formulaire type reproduit plus bas.',
+      'La demande doit permettre d’identifier la commande : date de facture, offre souscrite et, si possible, la clé de licence concernée.',
     ],
   },
   {
     id: 'formulaire',
-    title: '4. Formulaire type de rétractation',
+    title: '4. Formulaire type',
     paragraphs: [
       'À l’attention de l’éditeur, dont les coordonnées figurent dans les mentions légales :',
-      '« Je vous notifie par la présente ma rétractation du contrat portant sur la fourniture du service suivant : Revenue Recovery OS — [offre souscrite]. Commandé le [date] / reçu le [date]. Nom du consommateur : [nom]. Adresse : [adresse]. Date : [date]. »',
+      '« Je vous notifie l’annulation de ma commande portant sur le service suivant : Revenue Recovery OS — [offre souscrite]. Facturée le [date]. Société : [raison sociale]. Contact : [nom]. Clé de licence : [clé]. Date : [date]. »',
     ],
   },
   {
     id: 'effets',
-    title: '5. Effets de la rétractation',
+    title: '5. Effets de l’annulation',
     paragraphs: [
-      'En cas de rétractation valable, le remboursement des sommes versées intervient au plus tard quatorze jours à compter de la réception de votre notification, par le même moyen de paiement que celui utilisé lors du règlement.',
-      'La clé de licence associée est désactivée : elle cesse d’être valable et ne doit plus être utilisée. Vos données locales restent intactes sur votre appareil, y compris après la désactivation.',
+      'Le remboursement des sommes versées au titre de la période concernée intervient au plus tard quatorze jours à compter de la réception de la demande, par le même moyen de paiement que celui utilisé lors du règlement, ou par virement si le paiement initial a été effectué par ce canal.',
+      'La clé de licence associée est désactivée : elle cesse d’être valable et ne doit plus être utilisée.',
+      'Les données enregistrées dans le navigateur du Client ne sont ni consultées, ni modifiées, ni supprimées par cette désactivation : l’Éditeur n’y a aucun accès.',
     ],
   },
   {
     id: 'litiges',
-    title: '6. Litiges',
+    title: '6. En cas de désaccord',
     paragraphs: [
-      'Si votre réclamation écrite n’a pas reçu de solution satisfaisante, vous pouvez recourir gratuitement au médiateur de la consommation compétent (article L616-1 du Code de la consommation).',
+      `Si la réponse apportée ne vous satisfait pas, adressez une réclamation écrite à ${EDITOR.email}. L’Éditeur répond dans un délai de quinze jours ouvrés.`,
+      'Les litiges entre professionnels sont examinés en priorité par voie amiable, puis portés devant la juridiction compétente désignée à l’article 17 des conditions générales de vente.',
+      'La médiation de la consommation (article L616-1 du Code de la consommation) ne s’applique pas aux relations entre professionnels.',
     ],
   },
 ];
@@ -475,7 +519,7 @@ export const ALL_LEGAL_DOCUMENTS = [
   { id: 'mentions-legales', path: '/mentions-legales', title: 'Mentions légales', sections: LEGAL_NOTICE_SECTIONS },
   { id: 'cgv', path: '/cgv', title: 'Conditions générales de vente', sections: TERMS_SECTIONS },
   { id: 'confidentialite', path: '/confidentialite', title: 'Politique de confidentialité', sections: PRIVACY_SECTIONS },
-  { id: 'retractation', path: '/retractation', title: 'Droit de rétractation', sections: WITHDRAWAL_SECTIONS },
+  { id: 'retractation', path: '/retractation', title: 'Rétractation et garantie commerciale', sections: WITHDRAWAL_SECTIONS },
 ] as const;
 
 /** Texte intégral d'un document, pour la recherche et les tests. */

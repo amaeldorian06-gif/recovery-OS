@@ -25,13 +25,26 @@ test('Identité légale : tant que les placeholders sont présents, la complétu
   }
 });
 
-test('Identité légale : le médiateur non désigné est listé comme manquant', () => {
+test('Identité légale : le médiateur n’est exigé qu’en vente aux particuliers', () => {
   const missing = missingLegalFields();
-  if (EDITOR.mediator === null) {
+  const asked = missing.some(m => m.includes('Médiateur de la consommation'));
+
+  if (EDITOR.salesScope === 'b2b') {
+    assert.equal(asked, false, 'en B2B exclusif, aucun médiateur ne doit être réclamé');
+    assert.equal(EDITOR.mediator, null, 'aucun médiateur ne doit être fictivement désigné');
+  } else {
+    assert.equal(asked, EDITOR.mediator === null, 'en B2C, un médiateur est obligatoire (L616-1)');
+  }
+});
+
+test('Identité légale : la franchise en base de TVA est cohérente avec le numéro de TVA', () => {
+  if (EDITOR.vatExempt) {
     assert.ok(
-      missing.some(m => m.includes('Médiateur de la consommation')),
-      'l’absence de médiateur doit figurer dans la liste (obligation L616-1 en B2C)'
+      !missingLegalFields().includes('Numéro de TVA'),
+      'en franchise en base, aucun numéro de TVA ne doit être exigé'
     );
+  } else {
+    assert.ok(missingLegalFields().includes('Numéro de TVA'), 'un assujetti doit renseigner son numéro de TVA');
   }
 });
 

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Check, HardDrive, ShieldCheck } from 'lucide-react';
+import { Check, HardDrive, ShieldCheck, Building2 } from 'lucide-react';
+import { PLAN_DETAILS } from '../storage/license';
 
 interface PricingPageProps {
   onNavigate: (path: string) => void;
@@ -7,7 +8,7 @@ interface PricingPageProps {
 
 const PLANS = [
   {
-    key: 'essentiel', name: 'Essentiel', price: '19 €', period: '/mois',
+    key: 'essentiel', name: PLAN_DETAILS.essentiel.label, price: `${PLAN_DETAILS.essentiel.priceMonthly} €`, period: '/mois',
     desc: 'Indépendants et TPE qui suivent leurs impayés sans friction.',
     features: [
       'Jusqu’à 150 factures actives',
@@ -19,7 +20,7 @@ const PLANS = [
     highlight: false,
   },
   {
-    key: 'pro', name: 'Pro', price: '49 €', period: '/mois',
+    key: 'pro', name: PLAN_DETAILS.pro.label, price: `${PLAN_DETAILS.pro.priceMonthly} €`, period: '/mois',
     desc: 'PME et directions financières avec portefeuilles clients multiples.',
     features: [
       'Factures actives illimitées',
@@ -32,7 +33,7 @@ const PLANS = [
     highlight: true,
   },
   {
-    key: 'cabinet', name: 'Cabinet', price: '89 €', period: '/mois',
+    key: 'cabinet', name: PLAN_DETAILS.cabinet.label, price: `${PLAN_DETAILS.cabinet.priceMonthly} €`, period: '/mois',
     desc: 'Cabinets comptables et sociétés de recouvrement multi-dossiers.',
     features: [
       'Tout le plan Pro',
@@ -56,10 +57,18 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
         <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-3">
           Des offres claires, sous 100 € par mois
         </h1>
-        <p className="text-[#9AAAC0] max-w-2xl leading-relaxed mb-10">
+        <p className="text-[#9AAAC0] max-w-2xl leading-relaxed mb-4">
           Un seul prix visible, essai de 14 jours sans carte bancaire. La licence s’active sur votre poste ;
           elle ne remplace jamais une sauvegarde de vos données.
         </p>
+        <div className="inline-flex items-start gap-2 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 mb-10 max-w-2xl">
+          <Building2 className="w-4 h-4 shrink-0 mt-0.5 text-[#38BDF8]" />
+          <p className="text-[12px] text-[#9AAAC0] leading-relaxed">
+            <span className="text-[#E6EAF2] font-semibold">Offres réservées aux professionnels.</span>{' '}
+            Le service est destiné aux entreprises, indépendants et cabinets dans le cadre de leur activité.
+            Les CGV applicables sont celles conclues entre professionnels.
+          </p>
+        </div>
 
         <div className="grid md:grid-cols-3 gap-4 mb-12">
           {PLANS.map(plan => (
@@ -145,7 +154,9 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
           >
             Démarrer l’essai gratuit de 14 jours
           </button>
-          <p className="mt-3 text-xs text-[#6B7D98]">Prix TTC · Résiliable à tout moment · Sans engagement</p>
+          <p className="mt-3 text-xs text-[#6B7D98]">
+            Prix nets, sans taxe (TVA non applicable, art. 293 B du CGI) · Sans engagement · Réservé aux professionnels
+          </p>
         </div>
       </main>
 
