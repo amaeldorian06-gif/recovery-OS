@@ -99,8 +99,9 @@ const VERIFICATIONS: Array<{ label: string; result: string; ok: boolean }> = [
 ];
 
 const REMAINING = [
+  'Remplacer l’adresse de contact placeholder (src/config/brand.ts) par l’adresse réelle du vendeur.',
+  'Rédiger mentions légales, CGV et politique de confidentialité (obligatoire pour vendre en UE).',
   'Installer Playwright pour couvrir inscription → import → sauvegarde en navigation réelle.',
-  'Unifier esbuild/vite pour supprimer l’obligation --legacy-peer-deps.',
   'Renseigner VITE_SITE_URL sur le projet Vercel (domaine injecté au build, plus aucune édition manuelle).',
   'Intégrer un prestataire de paiement si la vente automatisée des licences est décidée.',
   'Benchmark à 10 000+ factures (non réalisé).',

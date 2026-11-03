@@ -12,11 +12,13 @@ import { PromiseModal } from './PromiseModal';
 import { ActionCenterModal } from './ActionCenterModal';
 import { ActionsJournalView } from './ActionsJournalView';
 import { calculateFinancialMetrics } from '../utils/financial';
+import { formatDisplayDate } from '../utils/dates';
 import { exportInvoicesToCsv } from '../utils/csv';
-import { PLAN_DETAILS } from '../storage/license';
+import { LicenseCard } from './LicenseCard';
+import { BackupReminder } from './BackupReminder';
 import {
   BarChart3, UploadCloud, FileText, Calculator, Send, HardDrive, Settings as SettingsIcon,
-  Download, LogOut, Building, Users, KeyRound, ExternalLink, Menu, X, ShieldCheck, History,
+  Download, LogOut, Building, Users, ExternalLink, Menu, X, History,
 } from 'lucide-react';
 
 export type WorkspaceSection =
@@ -223,6 +225,7 @@ export const AppWorkspace: React.FC<AppWorkspaceProps> = ({ section, onNavigateS
                   <UploadCloud className="w-3.5 h-3.5" /> Importer un fichier
                 </button>
               </div>
+              <BackupReminder onOpenBackup={() => onNavigateSection('backup')} />
               <MetricsHeader metrics={metrics} />
               <PrioritizationTable
                 invoices={invoices}
@@ -275,29 +278,7 @@ export const AppWorkspace: React.FC<AppWorkspaceProps> = ({ section, onNavigateS
                 </div>
               </section>
 
-              <section className="rounded-xl border border-white/10 bg-[#111726] p-5 space-y-3">
-                <h3 className="font-bold text-sm flex items-center gap-2"><KeyRound className="w-4 h-4 text-[#38C995]" /> Licence</h3>
-                {license ? (
-                  <div className="text-[13px] space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-2 py-0.5 rounded bg-[#38C995]/15 text-[#38C995] border border-[#38C995]/30 text-xs font-semibold">
-                        {license.label}
-                      </span>
-                      <span className="font-mono text-xs text-[#9AAAC0]">{license.key}</span>
-                    </div>
-                    <p className="text-xs text-[#9AAAC0]">
-                      Activée le {license.activatedAt} · {license.seats} poste(s) · {PLAN_DETAILS[license.plan].priceMonthly} €/mois après l'essai.
-                    </p>
-                    <p className="text-xs text-[#6B7D98] flex items-start gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                      Activation locale de confort : cette clé vérifie sa propre cohérence et mémorise votre plan.
-                      Ce n'est pas un contrôle serveur inviolable — nos offres fonctionnent sans vérification en ligne.
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-[13px] text-[#9AAAC0]">Aucune licence active.</p>
-                )}
-              </section>
+              <LicenseCard />
 
               <section className="rounded-xl border border-white/10 bg-[#111726] p-5 space-y-3">
                 <h3 className="font-bold text-sm flex items-center gap-2"><History className="w-4 h-4 text-[#D946EF]" /> Journal d'activité</h3>
@@ -320,6 +301,12 @@ export const AppWorkspace: React.FC<AppWorkspaceProps> = ({ section, onNavigateS
                 <p className="text-[13px] text-[#9AAAC0]">
                   {invoices.length} facture(s) · {actions.length} action(s) de recouvrement · stockage IndexedDB de cet appareil.
                   {mode === 'demo' && ' Mode démonstration actif : rien n\'est persisté.'}
+                </p>
+                <p className="text-[13px] text-[#9AAAC0]">
+                  Dernière sauvegarde exportée :{' '}
+                  <span className="text-[#C7D2E5] font-medium">
+                    {settings?.lastBackupAt ? formatDisplayDate(settings.lastBackupAt.slice(0, 10)) : 'jamais'}
+                  </span>
                 </p>
               </section>
             </div>

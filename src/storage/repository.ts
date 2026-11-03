@@ -764,6 +764,7 @@ export class Repository {
         organizationId,
         defaultCurrency: patch.defaultCurrency ?? current?.defaultCurrency ?? DEFAULT_CURRENCY,
         creditSales90d: patch.creditSales90d ?? current?.creditSales90d,
+        lastBackupAt: patch.lastBackupAt ?? current?.lastBackupAt,
         onboarding: { ...(current?.onboarding ?? { hasConfiguredCompany: true, hasImportedFile: false, hasReviewedPriorities: false, hasTakenAction: false }), ...(patch.onboarding ?? {}) },
       };
       await tx.put('settings', next);

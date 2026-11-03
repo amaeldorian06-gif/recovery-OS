@@ -2,46 +2,23 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { AppProvider, useApp } from './app/AppContext';
-import { Navbar, PublicRoute } from './components/Navbar';
+import { Navbar } from './components/Navbar';
 import { LandingPage } from './components/LandingPage';
 import { FeaturesPage } from './components/FeaturesPage';
 import { ProductPreview } from './components/ProductPreview';
 import { ProgressDashboard } from './components/ProgressDashboard';
+import { NotFoundPage } from './components/NotFoundPage';
 import { PricingPage } from './components/PricingPage';
 import { SignUpPage } from './components/SignUpPage';
 import { SignInPage } from './components/SignInPage';
 import { AppWorkspace, WorkspaceSection } from './components/AppWorkspace';
 import { FintechCosmicBackground } from './components/FintechCosmicBackground';
 import { Lock, HardDrive, AlertTriangle } from 'lucide-react';
+import { routeFromPath } from './app/routes';
 
 /* ------------------------------------------------------------------ */
 /* Routeur de chemins minimal (aucune dépendance externe)              */
 /* ------------------------------------------------------------------ */
-
-const PATH_ROUTES: Record<string, PublicRoute> = {
-  '/': 'landing',
-  '/fonctionnalites': 'features',
-  '/apercu': 'preview',
-  '/suivi': 'progress',
-  '/tarifs': 'pricing',
-  '/connexion': 'signin',
-  '/inscription': 'signup',
-};
-
-function routeFromPath(path: string): { route: PublicRoute | 'app'; section: WorkspaceSection } {
-  const clean = path.replace(/\/+$/, '') || '/';
-  if (clean.startsWith('/app')) {
-    const sub = clean.replace(/^\/app\/?/, '');
-    const allowed: WorkspaceSection[] = ['dashboard', 'import', 'aging', 'calculator', 'actions', 'backup', 'settings'];
-    const section = (allowed.includes(sub as WorkspaceSection) ? sub : 'dashboard') as WorkspaceSection;
-    return { route: 'app', section };
-  }
-  return { route: PATH_ROUTES[clean] ?? 'landing', section: 'dashboard' };
-}
-
-function pathForRoute(route: PublicRoute): string {
-  return Object.entries(PATH_ROUTES).find(([, r]) => r === route)?.[0] ?? '/';
-}
 
 function usePathname(): string {
   const [pathname, setPathname] = useState(() => window.location.pathname);
@@ -99,6 +76,8 @@ function Shell() {
         return <ProductPreview onNavigate={navigate} />;
       case 'progress':
         return <ProgressDashboard onNavigate={navigate} />;
+      case 'notfound':
+        return <NotFoundPage onNavigate={navigate} path={pathname} />;
       case 'pricing':
         return <PricingPage onNavigate={navigate} />;
       case 'signup':
