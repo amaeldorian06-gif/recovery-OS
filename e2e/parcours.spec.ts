@@ -88,22 +88,29 @@ test.describe('Parcours nominal', () => {
     await creerEspace(page);
 
     // --- Import d'une balance âgée -------------------------------------
-    await page.getByRole('button', { name: 'Importer un CSV', exact: true }).first().click();
-    await expect(page.getByRole('heading', { name: /Import d.une balance âgée/ })).toBeVisible();
+    await etape('ouverture de l’import CSV', async () => {
+      await page.getByRole('button', { name: 'Importer un CSV', exact: true }).first().click();
+      await expect(page.getByRole('heading', { name: /Import d.une balance âgée/ })).toBeVisible();
+    });
 
-    // Le modèle intégré évite de dépendre d'un fichier externe.
-    await page.getByRole('button', { name: /Insérer un modèle FR d.exemple/ }).click();
-    await page.getByRole('button', { name: 'Valider et prévisualiser' }).click();
+    await etape('lecture du modèle CSV', async () => {
+      // Le modèle intégré évite de dépendre d'un fichier externe.
+      await page.getByRole('button', { name: /Insérer un modèle FR d.exemple/ }).click();
+      await page.getByRole('button', { name: 'Valider et prévisualiser' }).click();
+    });
 
-    const engager = page.getByRole('button', { name: /Engager \d+ facture/ });
-    await expect(engager).toBeVisible();
-    await engager.click();
-
-    // Le résultat est confirmé à l'écran avant le retour au tableau de bord.
-    await expect(page.getByText(/facture\(s\) ajoutée\(s\)/)).toBeVisible();
+    await etape('engagement des factures', async () => {
+      const engager = page.getByRole('button', { name: /Engager \d+ facture/ });
+      await expect(engager).toBeVisible();
+      await engager.click();
+      // Le résultat est confirmé à l'écran avant le retour au tableau de bord.
+      await expect(page.getByText(/facture\(s\) ajoutée\(s\)/)).toBeVisible();
+    });
 
     // --- Sauvegarde ----------------------------------------------------
-    await page.getByRole('button', { name: 'Sauvegarde', exact: true }).first().click();
+    await etape('ouverture de la sauvegarde', async () => {
+      await page.getByRole('button', { name: 'Sauvegarde', exact: true }).first().click();
+    });
     const telechargement = page.waitForEvent('download');
     await page.getByRole('button', { name: /Télécharger ma sauvegarde JSON/ }).click();
     const fichier = await telechargement;
@@ -118,11 +125,13 @@ test.describe('Parcours nominal', () => {
   test('les données importées survivent à un rechargement (IndexedDB réel)', async ({ page }) => {
     await creerEspace(page);
 
-    await page.getByRole('button', { name: 'Importer un CSV', exact: true }).first().click();
-    await page.getByRole('button', { name: /Insérer un modèle FR d.exemple/ }).click();
-    await page.getByRole('button', { name: 'Valider et prévisualiser' }).click();
-    await page.getByRole('button', { name: /Engager \d+ facture/ }).click();
-    await expect(page.getByText(/facture\(s\) ajoutée\(s\)/)).toBeVisible();
+    await etape('import puis rechargement', async () => {
+      await page.getByRole('button', { name: 'Importer un CSV', exact: true }).first().click();
+      await page.getByRole('button', { name: /Insérer un modèle FR d.exemple/ }).click();
+      await page.getByRole('button', { name: 'Valider et prévisualiser' }).click();
+      await page.getByRole('button', { name: /Engager \d+ facture/ }).click();
+      await expect(page.getByText(/facture\(s\) ajoutée\(s\)/)).toBeVisible();
+    });
 
     await page.reload();
 

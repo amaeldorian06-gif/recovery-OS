@@ -31,6 +31,10 @@ export default defineConfig({
     : [['list']],
   timeout: 60_000,
   expect: { timeout: 10_000 },
+  // Sans borne, un clic impossible consomme tout le budget du test et le message
+  // se réduit à « Test timeout » : impossible de savoir quel élément manquait.
+  actionTimeout: 15_000,
+  navigationTimeout: 20_000,
 
   use: {
     baseURL: process.env.E2E_BASE_URL ?? 'http://127.0.0.1:4173',
