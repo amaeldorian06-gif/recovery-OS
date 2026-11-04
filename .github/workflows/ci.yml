@@ -73,6 +73,10 @@ jobs:
       - name: Tests de bout en bout
         run: npm run e2e
 
+      - name: Détail des échecs (annotations)
+        if: failure()
+        run: node scripts/resumer-echecs-e2e.mjs
+
       - name: Rapport en cas d'échec
         if: failure()
         uses: actions/upload-artifact@v4

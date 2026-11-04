@@ -20,7 +20,15 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list']],
+  reporter: process.env.CI
+    ? [
+        ['list'],
+        ['html', { open: 'never' }],
+        // Rapport machine : les journaux GitHub ne sont pas toujours
+        // téléchargeables, ce fichier alimente des annotations lisibles via l'API.
+        ['json', { outputFile: 'test-results/report.json' }],
+      ]
+    : [['list']],
   timeout: 60_000,
   expect: { timeout: 10_000 },
 
