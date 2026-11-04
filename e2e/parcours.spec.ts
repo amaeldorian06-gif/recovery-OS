@@ -18,6 +18,14 @@ const PASSWORD = 'motdepasse-e2e-2026';
 const stamp = Date.now();
 
 async function creerEspace(page: import('@playwright/test').Page): Promise<void> {
+  // Remonter toute exception JavaScript de la page : sans cela, un échec
+  // silencieux ne se traduirait que par « élément introuvable ».
+  const erreursPage: string[] = [];
+  page.on('pageerror', erreur => erreursPage.push(`pageerror: ${erreur.message}`));
+  page.on('console', message => {
+    if (message.type() === 'error') erreursPage.push(`console: ${message.text()}`);
+  });
+
   await page.goto('/inscription');
   await expect(page.getByRole('heading', { name: 'Créer votre espace local' })).toBeVisible();
 
@@ -29,7 +37,16 @@ async function creerEspace(page: import('@playwright/test').Page): Promise<void>
 
   await page.getByRole('button', { name: /Créer mon espace et activer l.essai/ }).click();
 
-  await expect(page.getByRole('heading', { name: 'Votre espace est prêt' })).toBeVisible();
+  // Deux issues possibles : l'écran de succès ou un bandeau d'erreur.
+  const succes = page.getByRole('heading', { name: 'Votre espace est prêt' });
+  const bandeauErreur = page.locator('[class*="bg-red-500"]');
+  await expect(succes.or(bandeauErreur).first()).toBeVisible({ timeout: 30_000 });
+
+  if (await bandeauErreur.count() > 0) {
+    const texte = await bandeauErreur.first().innerText();
+    throw new Error(`Inscription refusée par l’application : « ${texte.trim()} »${erreursPage.length ? ` | ${erreursPage.join(' ; ')}` : ''}`);
+  }
+
   await page.getByRole('button', { name: /Ouvrir mon tableau de bord/ }).click();
   await expect(page).toHaveURL(/\/app\/dashboard/);
 }
