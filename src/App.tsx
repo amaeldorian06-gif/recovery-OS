@@ -8,7 +8,6 @@ import { FeaturesPage } from './components/FeaturesPage';
 import { ProductPreview } from './components/ProductPreview';
 import { ProgressDashboard } from './components/ProgressDashboard';
 import { NotFoundPage } from './components/NotFoundPage';
-import { LegalNoticePage, TermsPage, PrivacyPage, WithdrawalPage } from './components/LegalPages';
 import { PricingPage } from './components/PricingPage';
 import { SignUpPage } from './components/SignUpPage';
 import { SignInPage } from './components/SignInPage';
@@ -16,6 +15,26 @@ import { AppWorkspace, WorkspaceSection } from './components/AppWorkspace';
 import { FintechCosmicBackground } from './components/FintechCosmicBackground';
 import { Lock, HardDrive, AlertTriangle } from 'lucide-react';
 import { routeFromPath } from './app/routes';
+
+/**
+ * Les cinq documents légaux sont chargés à la demande.
+ *
+ * Ils représentent ~30 kB de texte qu'un visiteur de la page d'accueil n'ouvre
+ * pratiquement jamais. Les sortir du bundle initial évite d'alourdir le premier
+ * rendu ; le module reste unique, donc une seule requête à la première visite
+ * d'un document.
+ */
+type LegalPageProps = { onNavigate: (path: string) => void };
+
+const lazyLegalPage = (
+  pick: (module: typeof import('./components/LegalPages')) => React.ComponentType<LegalPageProps>
+) => React.lazy(() => import('./components/LegalPages').then(module => ({ default: pick(module) })));
+
+const LegalNoticePage = lazyLegalPage(module => module.LegalNoticePage);
+const TermsOfUsePage = lazyLegalPage(module => module.TermsOfUsePage);
+const TermsPage = lazyLegalPage(module => module.TermsPage);
+const PrivacyPage = lazyLegalPage(module => module.PrivacyPage);
+const WithdrawalPage = lazyLegalPage(module => module.WithdrawalPage);
 
 /* ------------------------------------------------------------------ */
 /* Routeur de chemins minimal (aucune dépendance externe)              */
@@ -81,6 +100,8 @@ function Shell() {
         return <NotFoundPage onNavigate={navigate} path={pathname} />;
       case 'legal':
         return <LegalNoticePage onNavigate={navigate} />;
+      case 'cgu':
+        return <TermsOfUsePage onNavigate={navigate} />;
       case 'terms':
         return <TermsPage onNavigate={navigate} />;
       case 'privacy':
@@ -132,7 +153,15 @@ function Shell() {
       )}
 
       <main className={`flex-1 relative z-10 flex flex-col ${isPublic ? '' : 'min-h-0'}`}>
-        {isPublic && publicPage()}
+        {isPublic && (
+          <React.Suspense
+            fallback={
+              <div className="py-24 text-center text-sm text-[#9AAAC0]">Chargement du document…</div>
+            }
+          >
+            {publicPage()}
+          </React.Suspense>
+        )}
 
         {!isPublic && !user && (
           <div className="flex-1 flex items-center justify-center p-6">

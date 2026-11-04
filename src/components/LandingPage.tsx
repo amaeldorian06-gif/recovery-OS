@@ -1,5 +1,6 @@
 import React from 'react';
 import { CONTACT_EMAIL, CONTACT_MAILTO } from '../config/brand';
+import { shortTaxMention } from '../config/tax';
 import { FileSpreadsheet, Shield, Lock, HardDrive, ArrowRight, Calculator, AlertTriangle } from 'lucide-react';
 
 interface LandingPageProps {
@@ -154,10 +155,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
         <footer className="border-t border-white/10 py-8 text-center text-xs text-[#6B7D98]">
           <p>Revenue Recovery OS · Recouvrement d'impayés souverain · Hébergement des pages : Vercel — aucune donnée financière n'y transite.</p>
-          <p className="mt-1">Offres réservées aux professionnels · TVA non applicable, art. 293 B du CGI.</p>
+          <p className="mt-1">Offres réservées aux professionnels · {shortTaxMention()}.</p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
             {[
               { label: 'Mentions légales', path: '/mentions-legales' },
+              { label: 'CGU', path: '/cgu' },
               { label: 'CGV', path: '/cgv' },
               { label: 'Confidentialité', path: '/confidentialite' },
               { label: 'Rétractation', path: '/retractation' },

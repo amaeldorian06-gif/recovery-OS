@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, HardDrive, ShieldCheck, Building2 } from 'lucide-react';
 import { PLAN_DETAILS } from '../storage/license';
+import { shortTaxMention } from '../config/tax';
 
 interface PricingPageProps {
   onNavigate: (path: string) => void;
@@ -155,7 +156,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
             Démarrer l’essai gratuit de 14 jours
           </button>
           <p className="mt-3 text-xs text-[#6B7D98]">
-            Prix nets, sans taxe (TVA non applicable, art. 293 B du CGI) · Sans engagement · Réservé aux professionnels
+            {shortTaxMention()} · Sans engagement · Réservé aux professionnels
           </p>
         </div>
       </main>

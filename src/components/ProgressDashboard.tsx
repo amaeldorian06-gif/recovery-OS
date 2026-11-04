@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle2, Circle, Clock, GitCommitHorizontal, TestTubeDiagonal, FileCode2, ShieldCheck, ArrowRight, HardDrive } from 'lucide-react';
+import { LegalConfigPanel } from './LegalConfigPanel';
 
 interface ProgressDashboardProps {
   onNavigate: (path: string) => void;
@@ -90,8 +91,10 @@ const PHASES: Phase[] = [
 
 const VERIFICATIONS: Array<{ label: string; result: string; ok: boolean }> = [
   { label: 'TypeScript (tsc --noEmit)', result: '0 erreur', ok: true },
-  { label: 'Tests unitaires (npm test)', result: '59 / 59 verts', ok: true },
-  { label: 'Build production (vite build)', result: '423 kB — succès', ok: true },
+  { label: 'Tests unitaires (npm test)', result: '141 / 141 verts', ok: true },
+  { label: 'Contrôle de rendu (npm run smoke)', result: '48 / 48 verts — 5 documents légaux', ok: true },
+  { label: 'Build production (vite build)', result: '465 kB (gzip 133) + 55 kB de documents légaux à la demande', ok: true },
+  { label: 'Configuration juridique (npm run legal:check)', result: 'bloquant — 7 champs manquants', ok: false },
   { label: 'Routes SPA (curl)', result: '/ · /apercu · /tarifs · /fonctionnalites → 200', ok: true },
   { label: 'Arbre Git', result: 'propre, 2 commits poussés sur la branche de session', ok: true },
   { label: 'Tests multi-navigateurs (manuel)', result: 'à faire — Chrome, Firefox, Safari, Edge', ok: false },
@@ -99,8 +102,10 @@ const VERIFICATIONS: Array<{ label: string; result: string; ok: boolean }> = [
 ];
 
 const REMAINING = [
-  'Remplacer l’adresse de contact placeholder (src/config/brand.ts) par l’adresse réelle du vendeur.',
-  'Renseigner l’identité de l’éditeur (src/config/editor.ts) : npm run legal:check doit passer. La TVA et le médiateur ne sont plus requis (B2B, franchise en base).',
+  'Renseigner l’identité réelle de l’éditeur dans src/config/editor.ts : 7 champs manquent (nom, adresse, ville, téléphone, courriel, numéro de déclaration d’activité, identifiant fiscal). npm run legal:check sort en erreur tant que ce n’est pas fait.',
+  'Trancher le rôle contractuel de Maketou et Chariow à partir de leurs conditions générales : revendeur, mandataire, prestataire de paiement ou merchant of record.',
+  'Désigner un représentant dans l’Union (RGPD, article 27) ou documenter l’exemption avant de vendre à des clients établis dans l’UE.',
+  'Faire valider par un juriste : articulation droit camerounais / OHADA et dispositions impératives du pays du client, statut d’entreprenant, autorité de contrôle compétente.',
   'Installer Playwright pour couvrir inscription → import → sauvegarde en navigation réelle.',
   'Renseigner VITE_SITE_URL sur le projet Vercel (domaine injecté au build, plus aucune édition manuelle).',
   'Intégrer un prestataire de paiement si la vente automatisée des licences est décidée.',
@@ -170,6 +175,9 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({ onNavigate
           </ul>
         </section>
 
+        {/* Configuration juridique */}
+        <LegalConfigPanel onNavigate={onNavigate} />
+
         {/* Phases */}
         <section className="space-y-4 mb-6">
           {PHASES.map(phase => {
@@ -219,9 +227,9 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({ onNavigate
         {/* Chiffres du dépôt */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
           {[
-            { icon: GitCommitHorizontal, k: 'Commits de session', v: '2', s: '3b263bb · 5bc939a' },
+            { icon: GitCommitHorizontal, k: 'Étape en cours', v: '3', s: 'configuration juridique' },
             { icon: FileCode2, k: 'Fichiers suivis', v: '128', s: 'dont 47 sources TS/TSX' },
-            { icon: TestTubeDiagonal, k: 'Fichiers de test', v: '8', s: '59 cas exécutés' },
+            { icon: TestTubeDiagonal, k: 'Fichiers de test', v: '12', s: '141 cas exécutés' },
             { icon: ShieldCheck, k: 'Données en cloud', v: '0', s: 'par conception' },
           ].map(c => (
             <div key={c.k} className="rounded-xl border border-white/10 bg-[#0B0F17] p-4">

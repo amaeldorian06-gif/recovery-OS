@@ -4,7 +4,7 @@ import { SessionUser } from '../app/AppContext';
 
 export type PublicRoute =
   | 'landing' | 'features' | 'pricing' | 'preview' | 'progress' | 'notfound'
-  | 'legal' | 'terms' | 'privacy' | 'withdrawal'
+  | 'legal' | 'cgu' | 'terms' | 'privacy' | 'withdrawal'
   | 'signin' | 'signup';
 
 interface NavbarProps {

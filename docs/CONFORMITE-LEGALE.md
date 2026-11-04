@@ -1,114 +1,171 @@
 # Conformité légale — état, sources et reste à faire
 
-> révision du 3 novembre 2026. À lire avant toute mise en vente.
+> Révision du 4 novembre 2026. À lire avant toute mise en vente.
+>
+> **Ces textes ne sont pas une consultation juridique et ne valent pas certification de conformité.**
+> Ils sont exacts sur ce qu'ils affirment et silencieux sur ce qu'ils ne peuvent pas établir.
 
-## 1. Ce qui a été livré
+## 1. Qui est l'éditeur — et ce qu'il n'est pas
 
-| Document | Route | Base légale | Longueur |
-|---|---|---|---|
-| Mentions légales | `/mentions-legales` | LCEN, art. **1-1** | 8 sections |
-| Conditions générales de vente | `/cgv` | C. conso. L111-1, L221-5, L221-18, L221-28 ; C. com. L441-1, L441-10, D441-5 | 18 articles |
-| Politique de confidentialité | `/confidentialite` | RGPD, art. 6, 13, 15-20 | 12 sections |
-| Rétractation et garantie commerciale | `/retractation` | C. conso. L221-18 (écarté en B2B) + garantie volontaire | 6 sections + bouton |
+| Élément | Statut |
+|---|---|
+| Type | `individual` — personne physique |
+| Pays d'établissement | Cameroun (droit OHADA) |
+| Activité | exercée en nom personnel, sans société constituée |
+| Nom commercial | Revenue Recovery OS (nom du produit, sans personnalité juridique) |
+| Distribution | vente directe (facture + clé de licence) ; Maketou (principal) et Chariow (secondaire) |
 
-Le contenu est isolé dans `src/content/legal.ts` (testable), l'identité dans `src/config/editor.ts` (source unique), la présentation dans `src/components/LegalDocumentPage.tsx`.
+Conséquences appliquées dans le code :
 
-## 2. Quatre pièges évités — et pourquoi la plupart des modèles en ligne sont faux
+- **aucun SIREN, SIRET, RCS, greffe, capital social ni adresse française** n'est affiché, réclamé ou simulé ;
+- Le service n'est **jamais** présenté comme une société : les mentions légales le disent explicitement ;
+- les obligations françaises (LCEN, Code de la consommation, Code de commerce, CGI) ne sont **plus** présentées comme applicables : elles sont soit écartées, soit citées comme référence extérieure volontaire.
 
-### 2.1 L'article 6-III de la LCEN n'existe plus
+L'ex-version de ce dépôt (étape 2) affichait « TVA non applicable, article 293 B du CGI » et réclamait 11 champs français. C'était une fiction : elle a été supprimée.
 
-C'est la référence que citent encore la quasi-totalité des modèles et générateurs. La **loi SREN n° 2024-449 du 21 mai 2024** (en vigueur depuis le 23 mai 2024) a :
-- déplacé l'obligation d'identification de l'éditeur de l'article 6-III vers l'**article 1-1** ;
-- déplacé la sanction pénale de l'article 6-VI vers l'**article 1-2** ;
-- réservé l'article 6 aux seuls services intermédiaires (hébergeurs, plateformes).
+## 2. Le modèle de données juridique
 
-Aucune mention de l'article 6-III n'apparaît dans nos pages, sauf pour signaler son obsolescence — un test le vérifie phrase par phrase.
+### 2.1 Quatre états par champ
 
-### 2.2 La plateforme RLL/ODR est fermée
-
-Le règlement (UE) 2024/3228 a fermé définitivement la plateforme européenne de règlement en ligne des litiges le **20 juillet 2025**. Les CGV qui conservent un lien vers `ec.europa.eu/consumers/odr` pointent vers une page morte. Ce lien est explicitement proscrit par un test.
-
-### 2.3 Le bouton de rétractation est obligatoire depuis le 19 juin 2026
-
-**Ordonnance n° 2026-2 et décret n° 2026-3 du 5 janvier 2026**, modifiant l'article L221-21 du Code de la consommation : tout professionnel concluant des contrats **à distance, via une interface en ligne, avec un consommateur** doit fournir une fonctionnalité de rétractation gratuite, identifiable par les mots « renoncer au contrat ici », accessible pendant les 14 jours. Sanction : 15 000 € (personne physique) à 75 000 € (personne morale), art. L242-13.
-
-### 2.4 L'exception « contenu numérique » n'est jamais automatique
-
-Article L221-28, 13° : la rétractation ne disparaît que si le consommateur a **à la fois** accepté l'exécution immédiate **et** renoncé expressément à son droit. Une clause générale « pas de rétractation sur les services numériques » serait abusive. Le texte distingue explicitement les deux consentements.
-
-## 3. Trois décisions prises (3 novembre 2026)
-
-### 3.1 Clientèle : **B2B exclusif**
-
-Décision : le service est vendu aux seuls professionnels. Conséquences appliquées dans les textes :
-
-| Obligation | Statut en B2B exclusif | Traitement |
+| État | Sens | Effet sur la publication |
 |---|---|---|
-| Information précontractuelle consommateur (L111-1) | Hors champ | CGV art. 1 : service réservé aux professionnels |
-| Droit de rétractation (L221-18) | Hors champ | CGV art. 10 : aucun droit légal — **mais** une garantie commerciale d'annulation de 14 jours est offerte volontairement |
-| Bouton de rétractation en ligne (L221-21, obligatoire depuis le 19/06/2026) | Hors champ | Conservé, reformulé en « Demander l'annulation » : il sert la garantie commerciale, pas une obligation légale |
-| Médiation de la consommation (L616-1) | Hors champ | Aucun médiateur requis ni désigné ; les CGV l'expliquent au lieu de le taire |
-| Garantie légale de conformité numérique (L224-25-12) | Hors champ | CGV art. 11 : garanties du Code civil (délivrance conforme 1604, vices cachés 1641) |
+| `provided` | valeur renseignée et assumée | aucune |
+| `not_applicable` | le champ n'a pas d'objet (capital d'une personne physique, code postal camerounais, greffe français) | **aucun blocage** |
+| `to_complete` | valeur juridiquement nécessaire mais absente | **bloque** le document |
+| `legal_review_required` | question ouverte nécessitant un professionnel du droit | **bloque** la revendication de conformité |
 
-**Si l'éditeur vend un jour à un particulier**, il devra : adhérer à un médiateur agréé CECMC, recueillir le double consentement de l'article L221-28 13°, et rétablir le libellé réglementaire « renoncer au contrat ici ». Le code est déjà structuré pour : `salesScope` dans `src/config/editor.ts` et branches conditionnelles dans `src/content/legal.ts`.
+Règle absolue : **une donnée absente n'est jamais remplacée par une invention**. Le rendu affiche `[à compléter]` ou `[à vérifier juridiquement]`, y compris en production.
 
-### 3.2 TVA : **franchise en base**
+### 2.2 Trois états par document
 
-`vatExempt: true`. Les CGV portent la mention obligatoire « TVA non applicable, article 293 B du Code général des impôts » et les prix affichés sont les prix effectivement dus (aucune taxe ajoutée). Aucun numéro de TVA n'est réclamé par `legal:check`.
+| État | Signification |
+|---|---|
+| `incomplete` | au moins un champ obligatoire manque — le document n'est pas publiable |
+| `legal_review_required` | les mentions sont renseignées, mais un point de droit reste à trancher |
+| `complete` | aucun champ manquant **et** aucun point ouvert |
 
-### 3.3 Hébergement : numéro de téléphone
+`complete` signifie « configuration cohérente », **pas** « conformité juridique ». Le code ne délivre jamais de certificat.
 
-La LCEN impose de publier le **nom, l'adresse et le numéro de téléphone** de l'hébergeur. Vercel ne publie qu'un seul numéro de son fait : celui de sa page DMCA officielle (`vercel.com/legal/dmca-policy`).
+### 2.3 Localisation
 
-Choix retenu : afficher `+1 559 288 7060` **en le qualifiant** — « ligne de signalement DMCA/abus publiée par l'hébergeur » — et ajouter `dmca@vercel.com` comme contact écrit vérifiable. Les numéros trouvés sur des annuaires tiers ((951) 383-6898, (415) 398-5463) n'ont pas été retenus : non vérifiables à la source.
+- `src/config/editor.ts` — identité, types d'éditeur, validation conditionnelle, hébergeur.
+- `src/config/jurisdictions.ts` — référentiels par pays (registres, identifiant fiscal, autorité de protection des données, code postal).
+- `src/config/channels.ts` — canaux de distribution et rôle contractuel.
+- `src/config/tax.ts` — traitement fiscal affiché au public.
+- `src/content/legal.ts` — les cinq documents, construits depuis la configuration.
+- `src/components/LegalConfigPanel.tsx` — console interne d'état (page `/suivi`).
 
-## 4. Ce qui reste à faire — et qui ne peut pas être fait sans vous
+## 3. Les cinq documents
 
-`npm run legal:check` sort en **erreur** tant que ces champs sont vides :
+| Document | Route | Fondement | Sections |
+|---|---|---|---|
+| Mentions légales | `/mentions-legales` | droit camerounais + OHADA ; LCEN art. 1-1 citée à titre volontaire | 10 |
+| Conditions générales d'utilisation | `/cgu` | droit camerounais + OHADA | 12 |
+| Conditions générales de vente | `/cgv` | droit camerounais + OHADA | 19 |
+| Politique de confidentialité | `/confidentialite` | RGPD art. 3-2, 6, 13, 15-20, 27 ; loi camerounaise n° 2010/012 | 15 |
+| Rétractation et garantie commerciale | `/retractation` | protection des consommateurs (écartée en B2B) + garantie volontaire | 6 |
+
+Les cinq documents partagent la même source d'identité : un test vérifie qu'ils affichent le même nom et le même courriel.
+
+## 4. Adaptations imposées par le statut réel
+
+### 4.1 Pas de code postal
+
+Le Cameroun n'attribue pas de code postal généralisé. Le champ est `not_applicable`, **ne bloque rien** et n'apparaît pas dans l'adresse affichée (ville + pays suffisent).
+
+### 4.2 Statut de l'entrepreneur personne physique (OHADA)
+
+Acte uniforme sur le droit commercial général, **article 30** : l'entreprenant est dispensé d'immatriculation au RCCM mais doit **déclarer son activité** ; le numéro de déclaration doit figurer sur les factures et documents professionnels, suivi de la mention **« Entreprenant dispensé d'immatriculation »**.
+
+Le code prévoit cette mention (`individualRegistry.requiredMention`) mais ne l'affiche **que si un numéro de déclaration existe** : afficher la mention sans numéro reviendrait à revendiquer un statut non établi.
+
+> ⚠️ Le statut exact (commerçant de plein droit, entreprenant déclaré, activité civile) dépend de l'activité réellement exercée. C'est un point de validation juridique, pas une déduction automatique.
+
+### 4.3 Droit applicable et juridiction
+
+Les CGV et les CGU désignent le **droit camerounais et les actes uniformes OHADA**, et les juridictions du lieu d'établissement de l'éditeur, sous réserve des dispositions impératives protégeant un consommateur.
+
+Il n'est plus écrit que les conditions sont « soumises au droit français » : c'était faux.
+
+### 4.4 Fiscalité
+
+`tax.regime = 'no_french_vat'`. L'éditeur n'est pas établi en France, n'y facture aucune TVA et n'a pas de numéro de TVA intracommunautaire. Les prix sont hors taxes.
+
+Pour une prestation B2B intracommunautaire, l'autoliquidation par le client (reverse charge) est en principe applicable — **à confirmer par un conseil fiscal**. La mention 293 B n'apparaît plus que si `regime = 'french_franchise'`, cas qui ne correspond pas à la configuration actuelle.
+
+### 4.5 RGPD
+
+Le site cible un public professionnel francophone, dont une partie se trouve dans l'Union : le critère de l'**article 3, paragraphe 2** est donc rempli pour ces personnes. La politique de confidentialité le motive au lieu de le supposer.
+
+Conséquences non résolues à ce jour :
+- **représentant dans l'Union (article 27)** : en principe obligatoire, sauf exemption à documenter ;
+- **autorité de contrôle** : celle de l'État membre de résidence de la personne concernée. Au Cameroun, aucune autorité équivalente à la CNIL n'est identifiée — le texte le dit au lieu d'inventer un organisme.
+
+### 4.6 Canaux de distribution
+
+Maketou et Chariow sont enregistrés avec `role: 'unknown'` et `roleVerified: false`. Les documents indiquent que leur qualification — revendeur, mandataire, prestataire de paiement ou *merchant of record* — **n'est pas établie**, et qu'ils ne sont **ni éditeurs ni titulaires des droits**.
+
+Cette qualification détermine pourtant qui est le vendeur contractuel, qui émet la facture et qui traite les remboursements. C'est le point juridique le plus structurant qui reste ouvert.
+
+## 5. Ce qui reste à faire — et qui n'appartient qu'à vous
+
+`npm run legal:check` sort en **erreur** tant que ces champs manquent :
 
 ```
-✗ Raison sociale · Forme juridique · Capital social · SIREN/SIRET
-  Ville du greffe · Adresse · Code postal · Ville · Téléphone
-  Directeur de la publication · E-mail de contact
+✗ Nom légal de l'éditeur
+✗ Adresse professionnelle
+✗ Ville
+✗ Adresse e-mail de contact
+✗ Téléphone
+✗ Numéro de déclaration d'activité (RCCM)
+✗ Titulaire des droits (dérivé du nom légal)
 ```
 
-La TVA et le médiateur **ne sont plus réclamés** : la franchise en base dispense du numéro de TVA, et le B2B exclusif du médiateur.
+**Non demandés, et c'est volontaire** : capital social, SIREN/SIRET, greffe, code postal, numéro de TVA français, médiateur de la consommation.
 
-À renseigner dans **`src/config/editor.ts`** uniquement.
+À renseigner dans **`src/config/editor.ts`** uniquement. La console `/suivi` affiche l'état champ par champ et permet de copier un bloc de configuration valide.
 
-### 4.1 Autres points à valider
+### 5.1 Points à validation juridique
 
 | # | Point | Pourquoi |
 |---|---|---|
-| 1 | Adresse et téléphone de l'hébergeur | Adresse issue de la Privacy Notice Vercel ; numéro issu de `vercel.com/legal/dmca-policy`. Une vérification annuelle est conseillée : ces coordonnées peuvent changer. |
-| 2 | Durée d'abonnement et reconduction | Les CGV indiquent « un mois ou un an, sans reconduction tacite ». À ajuster selon votre pratique commerciale réelle. |
-| 3 | Plafond de responsabilité (12 mois de redevances) | Standard du secteur, mais à faire valider : une clause trop basse peut être jugée abusive face à un consommateur. |
-| 4 | TVA | `vatExempt: true` (franchise en base). Si l'activité dépasse les seuils de franchise, passer à `false` et renseigner `vatNumber` : la mention 293 B disparaît automatiquement. |
-| 5 | Registre des traitements (art. 30 RGPD) | Obligatoire dès lors que vous traitez des données, même peu. Non fourni ici : document interne, distinct des pages publiques. |
-| 6 | Assurance responsabilité civile professionnelle | Fortement recommandée pour un éditeur de logiciel. |
-| 7 | Contrat de sous-traitance avec Vercel (DPA) | À accepter dans votre espace Vercel pour couvrir l'hébergement. |
-
-## 5. Réserves à assumer
-
-**Ces textes ne constituent pas une consultation juridique.** Ils sont rédigés sur la base des textes en vigueur au 3 novembre 2026 et vérifiables (références citées), mais un avocat doit les relire avant toute mise en vente significative. Un document contractuel mal adapté à votre pratique réelle est plus dangereux qu'un document absent : il crée des obligations que vous n'appliquez pas.
-
-**Points non couverts et assumés :**
-- Pas de clause de réversibilité ni de sortie de contrat (sans objet : il n'y a pas de données hébergées chez l'éditeur).
-- Pas de SLA chiffré (disponibilité, temps de rétablissement) : à ajouter si vous vendez à des cabinets.
-- Pas de clause d'audit ni de sécurité renforcée.
-- Le bouton de rétractation n'émet **pas** d'accusé de réception sur support durable : sans serveur, c'est l'e-mail envoyé par le client qui joue ce rôle. Cette limite est écrite sur la page.
+| 1 | Rôle contractuel de Maketou et Chariow | détermine le vendeur, la facture, les remboursements |
+| 2 | Statut de l'entrepreneur (OHADA art. 30) | conditionne la mention obligatoire sur les factures |
+| 3 | Articulation droit camerounais / OHADA et dispositions impératives du pays du client | un client professionnel étranger reste protégé par certaines règles |
+| 4 | TVA intracommunautaire B2B | autoliquidation à confirmer |
+| 5 | Représentant RGPD art. 27 | obligatoire en principe, exemption à documenter |
+| 6 | Autorité de contrôle compétente | aucune équivalence CNIL identifiée au Cameroun |
+| 7 | Plafond de responsabilité (12 mois) | standard du secteur, à valider |
+| 8 | Registre des traitements (art. 30 RGPD) | document interne, non fourni ici |
+| 9 | Assurance responsabilité civile professionnelle | fortement recommandée |
+| 10 | Contrat de sous-traitance Vercel (DPA) | à accepter dans l'espace Vercel |
 
 ## 6. Vérifications automatisées
 
-`src/content/legal.test.ts` — 22 tests qui échouent si :
-- l'article 6-III est présenté comme le fondement (au lieu de l'article 1-1) ;
-- un lien vers la plateforme ODR réapparaît ;
-- le périmètre B2B cesse d'être explicite, ou si un médiateur est réclamé à tort ;
-- la mention de franchise de TVA (art. 293 B du CGI) disparaît ;
-- les articles L221-18, L224-25-12, L441-1, L441-10, D441-5, L616-1 disparaissent ;
-- les prix des CGV divergent des plans réels du produit (`PLAN_DETAILS`) ;
-- une mention présente les indicateurs comme conformes IFRS 9 / CECL ;
-- une clause de sauvegarde cesse d'affirmer que l'éditeur ne peut rien restaurer ;
-- le texte contient un brouillon (`lorem`, `TODO`, crochet vide).
+`src/config/editor.test.ts` — 20 tests :
+- la configuration livrée est bien `individual` / Cameroun ;
+- aucun champ SIREN, greffe, capital ou code postal n'est réclamé à tort ;
+- `not_applicable` ne bloque jamais ; `to_complete` bloque ; `legal_review_required` n'est jamais déclaré conforme ;
+- une société doit fournir son capital, une personne physique non ;
+- le repli de courriel est un domaine réservé RFC 2606 (jamais routable).
 
-`scripts/smoke-render.tsx` — vérifie que les 4 pages se rendent réellement, sans `undefined` ni `NaN`, avec le bandeau de non-finalisation et le bouton de rétractation.
+`src/content/legal.test.ts` — 33 tests :
+- les cinq documents existent, sans doublon de section ni texte de remplissage ;
+- **aucun SIREN, SIRET, RCS, capital ou « 293 B »** n'est affirmé (les occurrences ne peuvent apparaître que dans une phrase de négation) ;
+- le service n'est jamais présenté comme une société ;
+- les prix des CGV correspondent à `PLAN_DETAILS` ;
+- les indicateurs ne sont jamais conformes IFRS 9 / CECL ;
+- le rôle des plateformes n'est pas inventé ;
+- l'article 27 du RGPD est annoncé comme non résolu ;
+- les cinq documents affichent la même identité ;
+- un champ manquant produit `[à compléter]`, jamais une valeur plausible.
+
+`scripts/smoke-render.tsx` — 48 contrôles : rendu réel des 5 documents, bandeau d'état correct, absence de `undefined`/`NaN`, console `/suivi` cohérente.
+
+## 7. Réserves à assumer
+
+- **Aucune relecture par un juriste n'a eu lieu.** Les références citées sont vérifiables, l'adaptation au statut de l'éditeur est réelle, mais un avocat doit relire avant une vente significative.
+- **Les textes sont rédigés en français** et supposent un lecteur francophone ; ils ne sont pas traduits.
+- **Pas de SLA chiffré**, pas de clause d'audit, pas de clause de réversibilité (sans objet : aucune donnée n'est hébergée chez l'éditeur).
+- **Le bouton d'annulation n'émet pas d'accusé de réception** : sans serveur, l'e-mail envoyé par le client en tient lieu. Cette limite est écrite sur la page.
+- **La conformité RGPD suppose une base légale par traitement** : elle est décrite, mais la tenue du registre et l'analyse d'impact éventuelle restent à produire.

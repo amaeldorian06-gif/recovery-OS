@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { LegalDocumentPage } from './LegalDocumentPage';
-import { EDITOR, PRODUCT } from '../config/editor';
+import { contactEmail, PRODUCT } from '../config/editor';
 import { Undo2, Copy, Check, Mail, AlertCircle } from 'lucide-react';
 
 interface PageProps {
@@ -9,6 +9,10 @@ interface PageProps {
 
 export const LegalNoticePage: React.FC<PageProps> = ({ onNavigate }) => (
   <LegalDocumentPage documentId="mentions-legales" onNavigate={onNavigate} />
+);
+
+export const TermsOfUsePage: React.FC<PageProps> = ({ onNavigate }) => (
+  <LegalDocumentPage documentId="cgu" onNavigate={onNavigate} />
 );
 
 export const TermsPage: React.FC<PageProps> = ({ onNavigate }) => (
@@ -45,11 +49,12 @@ const buildWithdrawalBody = (): string =>
 const WithdrawalAction: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const body = useMemo(buildWithdrawalBody, []);
-  const mailto = `mailto:${EDITOR.email}?subject=${encodeURIComponent(`Annulation de commande — ${PRODUCT}`)}&body=${encodeURIComponent(body)}`;
+  const email = contactEmail();
+  const mailto = `mailto:${email}?subject=${encodeURIComponent(`Annulation de commande — ${PRODUCT}`)}&body=${encodeURIComponent(body)}`;
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(`À : ${EDITOR.email}\n\n${body}`);
+      await navigator.clipboard.writeText(`À : ${email}\n\n${body}`);
       setCopied(true);
     } catch {
       setCopied(false);
@@ -107,6 +112,6 @@ export const WithdrawalPage: React.FC<PageProps> = ({ onNavigate }) => (
 export const LegalContactHint: React.FC = () => (
   <p className="text-[11px] text-[#6B7D98] flex items-center gap-1.5">
     <AlertCircle className="w-3.5 h-3.5" />
-    Contact : <a href={`mailto:${EDITOR.email}`} className="underline">{EDITOR.email}</a>
+    Contact : <a href={`mailto:${contactEmail()}`} className="underline">{contactEmail()}</a>
   </p>
 );

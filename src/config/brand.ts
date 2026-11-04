@@ -1,17 +1,24 @@
 /**
  * Coordonnées publiques du produit.
  *
- * ⚠️ `CONTACT_EMAIL` est un placeholder volontairement non routable :
- * le TLD `.example` est réservé par la RFC 2606 et ne peut jamais recevoir
- * de courrier. Il DOIT être remplacé par l'adresse réelle du vendeur avant
- * toute mise en production (voir docs/MISE-EN-PRODUCTION.md).
- * Un seul point de modification : aucun autre fichier ne code l'adresse.
+ * ⚠️ Aucune valeur propre ici : tout est dérivé de `src/config/editor.ts`.
+ * L'adresse de contact était auparavant codée deux fois (ici et dans la
+ * configuration de l'éditeur), ce qui permettait de publier une adresse sur le
+ * site et une autre dans les mentions légales. Il n'existe plus qu'un seul point
+ * de modification.
+ *
+ * Tant que l'adresse réelle n'est pas renseignée, le repli est un domaine
+ * réservé par la RFC 2606 (`.example`) qui ne peut jamais recevoir de courrier :
+ * l'oubli reste visible plutôt que silencieux.
  */
-export const PRODUCT_NAME = 'Revenue Recovery OS';
 
-export const CONTACT_EMAIL = 'contact@recovery-os.example';
+import { PRODUCT, contactEmail, isContactFallback } from './editor';
+
+export const PRODUCT_NAME = PRODUCT;
+
+export const CONTACT_EMAIL = contactEmail();
 
 export const CONTACT_MAILTO = `mailto:${CONTACT_EMAIL}`;
 
-/** Vrai si l'adresse de contact est encore le placeholder de développement. */
-export const CONTACT_IS_PLACEHOLDER = CONTACT_EMAIL.endsWith('.example');
+/** Vrai si l'adresse de contact n'est pas encore renseignée dans la configuration. */
+export const CONTACT_IS_PLACEHOLDER = isContactFallback();
