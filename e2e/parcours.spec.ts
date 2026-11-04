@@ -29,6 +29,22 @@ async function creerEspace(page: import('@playwright/test').Page): Promise<void>
   await page.goto('/inscription');
   await expect(page.getByRole('heading', { name: 'Créer votre espace local' })).toBeVisible();
 
+  // Diagnostic : distinguer « IndexedDB cassé » de « application en erreur ».
+  const diagnosticStockage = await page.evaluate(async () => {
+    if (!('indexedDB' in window)) return 'indexedDB absent du navigateur';
+    try {
+      const ouverture = indexedDB.open('diag-e2e', 1);
+      await new Promise<void>((resoudre, rejeter) => {
+        ouverture.onsuccess = () => resoudre();
+        ouverture.onerror = () => rejeter(ouverture.error ?? new Error('erreur inconnue'));
+        ouverture.onblocked = () => rejeter(new Error('ouverture bloquée'));
+      });
+      return 'indexedDB disponible';
+    } catch (erreur) {
+      return `indexedDB en échec : ${(erreur as Error).message}`;
+    }
+  });
+
   await page.getByLabel('Nom complet').fill('Awa Ngo Bassa');
   await page.getByLabel('Adresse e-mail').fill(`e2e-${stamp}@exemple.cm`);
   await page.getByLabel('Organisation').fill(`Cabinet E2E ${stamp}`);
@@ -39,12 +55,17 @@ async function creerEspace(page: import('@playwright/test').Page): Promise<void>
 
   // Deux issues possibles : l'écran de succès ou un bandeau d'erreur.
   const succes = page.getByRole('heading', { name: 'Votre espace est prêt' });
-  const bandeauErreur = page.locator('[class*="bg-red-500"]');
+  // Deux bandeaux possibles : erreur de formulaire (red-500) ou erreur
+  // applicative remontée par le contexte (rose-500).
+  const bandeauErreur = page.locator('[class*="bg-red-500"], [class*="bg-rose-500"]');
   await expect(succes.or(bandeauErreur).first()).toBeVisible({ timeout: 30_000 });
 
   if (await bandeauErreur.count() > 0) {
     const texte = await bandeauErreur.first().innerText();
-    throw new Error(`Inscription refusée par l’application : « ${texte.trim()} »${erreursPage.length ? ` | ${erreursPage.join(' ; ')}` : ''}`);
+    throw new Error(
+      `Inscription refusée : « ${texte.trim()} » | ${diagnosticStockage}` +
+      (erreursPage.length ? ` | ${erreursPage.join(' ; ')}` : '')
+    );
   }
 
   await page.getByRole('button', { name: /Ouvrir mon tableau de bord/ }).click();
