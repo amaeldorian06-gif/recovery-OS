@@ -98,6 +98,9 @@ check('Suivi : état global incomplet annoncé', dashboardHtml.includes('Incompl
 check('Suivi : champs sans objet marqués comme tels', dashboardHtml.includes('Non applicable'));
 check('Suivi : cinq documents listés', ['Mentions légales', 'Conditions générales d’utilisation', 'Conditions générales de vente', 'Politique de confidentialité', 'Rétractation et garantie commerciale'].every(t => dashboardHtml.includes(t)));
 check('Suivi : canaux non qualifiés signalés', dashboardHtml.includes('Maketou') && dashboardHtml.includes('à établir contractuellement'));
+check('Suivi : formulaire d’identité rendu', dashboardHtml.includes('Saisie de l’identité de l’éditeur'));
+check('Suivi : formulaire — champs sans objet signalés', dashboardHtml.includes('Sans objet'));
+check('Suivi : formulaire — bloc copiable présent', dashboardHtml.includes('src/config/editor.ts'));
 check('Suivi : aucun « undefined » ni « NaN »', !dashboardHtml.includes('undefined') && !dashboardHtml.includes('NaN'));
 
 console.log(failures === 0 ? '\nSMOKE : tous les contrôles passent' : `\nSMOKE : ${failures} échec(s)`);

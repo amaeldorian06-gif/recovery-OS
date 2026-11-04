@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Circle, Clock, GitCommitHorizontal, TestTubeDiagonal, FileCode2, ShieldCheck, ArrowRight, HardDrive } from 'lucide-react';
 import { LegalConfigPanel } from './LegalConfigPanel';
+import { LegalIdentityBuilder } from './LegalIdentityBuilder';
 
 interface ProgressDashboardProps {
   onNavigate: (path: string) => void;
@@ -91,9 +92,9 @@ const PHASES: Phase[] = [
 
 const VERIFICATIONS: Array<{ label: string; result: string; ok: boolean }> = [
   { label: 'TypeScript (tsc --noEmit)', result: '0 erreur', ok: true },
-  { label: 'Tests unitaires (npm test)', result: '141 / 141 verts', ok: true },
-  { label: 'Contrôle de rendu (npm run smoke)', result: '48 / 48 verts — 5 documents légaux', ok: true },
-  { label: 'Build production (vite build)', result: '465 kB (gzip 133) + 55 kB de documents légaux à la demande', ok: true },
+  { label: 'Tests unitaires (npm test)', result: '167 / 167 verts', ok: true },
+  { label: 'Contrôle de rendu (npm run smoke)', result: '51 / 51 verts — 5 documents légaux', ok: true },
+  { label: 'Build production (vite build)', result: '489,8 kB (gzip 139,8) + 54,8 kB de documents légaux à la demande', ok: true },
   { label: 'Configuration juridique (npm run legal:check)', result: 'bloquant — 7 champs manquants', ok: false },
   { label: 'Routes SPA (curl)', result: '/ · /apercu · /tarifs · /fonctionnalites → 200', ok: true },
   { label: 'Arbre Git', result: 'propre, 2 commits poussés sur la branche de session', ok: true },
@@ -102,7 +103,7 @@ const VERIFICATIONS: Array<{ label: string; result: string; ok: boolean }> = [
 ];
 
 const REMAINING = [
-  'Renseigner l’identité réelle de l’éditeur dans src/config/editor.ts : 7 champs manquent (nom, adresse, ville, téléphone, courriel, numéro de déclaration d’activité, identifiant fiscal). npm run legal:check sort en erreur tant que ce n’est pas fait.',
+  'Renseigner l’identité réelle de l’éditeur : utilisez le formulaire ci-dessous, collez le bloc dans src/config/editor.ts, puis npm run legal:check doit passer. 7 champs manquent encore.',
   'Trancher le rôle contractuel de Maketou et Chariow à partir de leurs conditions générales : revendeur, mandataire, prestataire de paiement ou merchant of record.',
   'Désigner un représentant dans l’Union (RGPD, article 27) ou documenter l’exemption avant de vendre à des clients établis dans l’UE.',
   'Faire valider par un juriste : articulation droit camerounais / OHADA et dispositions impératives du pays du client, statut d’entreprenant, autorité de contrôle compétente.',
@@ -177,6 +178,7 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({ onNavigate
 
         {/* Configuration juridique */}
         <LegalConfigPanel onNavigate={onNavigate} />
+        <LegalIdentityBuilder />
 
         {/* Phases */}
         <section className="space-y-4 mb-6">
@@ -229,7 +231,7 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({ onNavigate
           {[
             { icon: GitCommitHorizontal, k: 'Étape en cours', v: '3', s: 'configuration juridique' },
             { icon: FileCode2, k: 'Fichiers suivis', v: '128', s: 'dont 47 sources TS/TSX' },
-            { icon: TestTubeDiagonal, k: 'Fichiers de test', v: '12', s: '141 cas exécutés' },
+            { icon: TestTubeDiagonal, k: 'Fichiers de test', v: '13', s: '167 cas exécutés' },
             { icon: ShieldCheck, k: 'Données en cloud', v: '0', s: 'par conception' },
           ].map(c => (
             <div key={c.k} className="rounded-xl border border-white/10 bg-[#0B0F17] p-4">
