@@ -34,21 +34,25 @@ npm run build       # 447 kB (gzip 127 kB), dist/404.html présent
 
 ## Étape 2 — Juridique et commercial (RÉDIGÉ, à compléter par l'éditeur)
 
-**Décisions du 3 novembre 2026** : facturation manuelle + clé générée par l'éditeur · **vente B2B exclusive** · **franchise de TVA** (art. 293 B du CGI).
+**Décisions du 3 novembre 2026** : facturation manuelle + clé générée par l'éditeur · **vente B2B exclusive**.
+**Révision du 4 novembre 2026** : éditeur = **personne physique établie au Cameroun** ; la franchise française de TVA (art. 293 B du CGI) est **retirée** — elle ne s'applique pas à lui. La TVA relève de `tax.regime`.
 
 | # | Livrable | État |
 |---|---|---|
 | 5 | Mentions légales (LCEN art. 1-1) | Rédigé — `/mentions-legales` |
-| 6 | CGV (18 articles, B2B + B2C) | Rédigé — `/cgv` |
-| 7 | Politique de confidentialité (RGPD) | Rédigé — `/confidentialite` |
-| 8 | Rétractation (B2B : aucune légale) + **garantie commerciale de 14 jours** | Rédigé — `/retractation` |
-| 9 | Générateur de clés de vente | `npm run licence -- --plan pro` |
+| 6 | CGU (conditions d'utilisation du site et du logiciel) | Rédigé — `/cgu` |
+| 7 | CGV (19 articles, B2B) | Rédigé — `/cgv` |
+| 8 | Politique de confidentialité (RGPD art. 3-2 + loi camerounaise) | Rédigé — `/confidentialite` |
+| 9 | Rétractation (B2B : aucune légale) + **garantie commerciale de 14 jours** | Rédigé — `/retractation` |
+| 10 | Générateur de clés de vente | `npm run licence -- --plan pro` |
 
 **Ce qui reste, et qui n'appartient qu'à vous :**
 
-1. Renseigner `src/config/editor.ts` (raison sociale, SIREN, adresse, téléphone, e-mail, directeur de publication). `npm run legal:check` échoue tant que ce n'est pas fait.
-2. Faire relire les textes par un avocat avant une vente significative.
-3. Si la vente aux particuliers est décidée plus tard : médiateur CECMC obligatoire, `salesScope: 'b2c'`, double consentement L221-28 13°.
+1. Renseigner `src/config/editor.ts` : nom légal, adresse, ville, téléphone, courriel, numéro de déclaration d'activité, identifiant fiscal (NIU). **Aucun SIREN, greffe ni capital social n'est demandé** : ils n'existent pas pour cet éditeur. `npm run legal:check` échoue tant que les 7 champs manquent.
+2. Faire relire les textes par un juriste — de préférence connaissant le droit camerounais et l'OHADA — avant une vente significative.
+3. Trancher le rôle contractuel de Maketou et de Chariow à partir de leurs conditions générales, puis mettre à jour `src/config/channels.ts`.
+4. Désigner un représentant dans l'Union (RGPD art. 27) ou documenter l'exemption applicable.
+5. Si la vente aux particuliers est décidée plus tard : médiateur de la consommation, `salesScope: 'b2c'`, double consentement L221-28 13° (France).
 
 Voir `docs/CONFORMITE-LEGALE.md` : sources, pièges évités (art. 6-III abrogé, plateforme ODR fermée, bouton de rétractation obligatoire depuis le 19 juin 2026) et zones grises assumées.
 

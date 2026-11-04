@@ -102,8 +102,9 @@ Le stockage utilise IndexedDB + Web Crypto — testez : Chrome, Firefox, Safari 
 ## Périmètre commercial et fiscal
 
 - **Vente exclusivement entre professionnels** (B2B) : pas de droit de rétractation légal, pas de médiation de la consommation. Une **garantie commerciale d'annulation de 14 jours** est offerte volontairement (`/retractation`).
-- **Franchise en base de TVA** : mention « TVA non applicable, article 293 B du CGI », aucun numéro de TVA.
-- Ces deux paramètres sont centralisés dans `src/config/editor.ts` (`salesScope`, `vatExempt`) et répercutés automatiquement dans les CGV, la page Tarifs et le pied de page.
+- **Éditeur** : personne physique établie au Cameroun, exerçant en nom personnel. Ce n'est pas une société : aucun SIREN, SIRET, RCS, greffe ni capital social ne lui est attribué, et aucun n'est affiché.
+- **TVA** : l'éditeur est établi au Cameroun et ne facture aucune TVA française. La mention « 293 B du CGI » (franchise française) a été retirée : elle ne s'applique pas à lui. Le traitement retenu découle de `tax.regime` dans `src/config/editor.ts` et se répercute dans les CGV, la page Tarifs et le pied de page.
+- **Paramètres juridiques centralisés** : `src/config/editor.ts` (`salesScope`, `type`, `tax`, champs à quatre états) ; aucun texte légal ne code une valeur en dur.
 
 ## Limites techniques connues
 
@@ -111,9 +112,10 @@ Le stockage utilise IndexedDB + Web Crypto — testez : Chrome, Firefox, Safari 
 2. **Courbe CRF** : heuristique interne de recouvrement (0,99 → 0,245 par tranche). **Ce n'est pas** une provision IFRS 9 / CECL et aucune conformité réglementaire n'est revendiquée.
 3. **Serveur legacy non déployé** : `server.ts` + `src/server/` (Express) survivent comme documentation historique. Ils contiennent une vérification de mot de passe défaillante (prouvée par tests curl pendant l'audit) et sont **exclus du chemin de déploiement**. Ne pas les activer sans réécriture complète de l'authentification.
 4. **Pas de synchronisation** : conception sans cloud. Une perte de l'ordinateur sans sauvegarde = perte des données. La procédure de sauvegarde ci-dessus est donc structurante.
-5. **Tests navigateur non automatisés** : 81 tests couvrent la logique pure, `npm run smoke` vérifie le rendu statique, mais l'UI n'a pas encore de tests E2E (Playwright/Cypress). Voir `docs/MISE-EN-PRODUCTION.md`.
-6. **Identité légale non renseignée** : `src/config/editor.ts` contient des placeholders (raison sociale, SIREN, adresse…). `npm run legal:check` échoue tant qu'ils subsistent et les pages affichent un bandeau « document non finalisé ». Voir `docs/CONFORMITE-LEGALE.md`.
-7. **Médiateur de la consommation non désigné** : obligatoire avant toute vente à un particulier (art. L616-1 C. conso.). Documenté dans les CGV.
+5. **Tests navigateur non automatisés** : 141 tests couvrent la logique pure, `npm run smoke` contrôle le rendu statique de 5 documents légaux, mais l'UI n'a pas encore de tests E2E (Playwright/Cypress). Voir `docs/MISE-EN-PRODUCTION.md`.
+6. **Identité légale non renseignée** : `src/config/editor.ts` contient 7 champs à compléter (nom, adresse, ville, téléphone, courriel, numéro de déclaration d'activité, identifiant fiscal). `npm run legal:check` échoue tant qu'ils manquent et les pages affichent un bandeau « Document non finalisé ». Aucune valeur fictive n'est insérée à leur place. Voir `docs/CONFORMITE-LEGALE.md`.
+7. **Qualification contractuelle des canaux de distribution** : le rôle de Maketou et de Chariow (revendeur, mandataire, prestataire de paiement, merchant of record) n'est pas établi ; il est marqué `role: 'unknown'` et signalé comme point à vérifier.
+8. **Représentant RGPD (art. 27) non désigné** : nécessaire en principe pour vendre à des clients établis dans l'Union. Documenté comme point ouvert dans la politique de confidentialité.
 
 ## Licence
 

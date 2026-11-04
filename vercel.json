@@ -36,6 +36,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/cgu",
+      "destination": "/index.html"
+    },
+    {
       "source": "/cgv",
       "destination": "/index.html"
     },

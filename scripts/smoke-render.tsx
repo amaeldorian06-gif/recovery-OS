@@ -11,9 +11,10 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { NotFoundPage } from '../src/components/NotFoundPage';
 import { AppErrorBoundary, AppErrorScreen } from '../src/components/AppErrorBoundary';
-import { LegalNoticePage, TermsPage, PrivacyPage, WithdrawalPage } from '../src/components/LegalPages';
+import { LegalNoticePage, TermsOfUsePage, TermsPage, PrivacyPage, WithdrawalPage } from '../src/components/LegalPages';
 import { PricingPage } from '../src/components/PricingPage';
 import { LandingPage } from '../src/components/LandingPage';
+import { ProgressDashboard } from '../src/components/ProgressDashboard';
 
 let failures = 0;
 
@@ -55,9 +56,10 @@ check('Erreur : aucun « undefined » ni « NaN »', !screen.includes('undefined
 const derived = AppErrorBoundary.getDerivedStateFromError(boom) as { error: Error };
 check('Boundary : getDerivedStateFromError conserve l’erreur', derived.error === boom);
 
-// 5. Documents légaux : rendu réel des quatre pages.
+// 5. Documents légaux : rendu réel des cinq pages.
 const legalPages = [
   { label: 'Mentions légales', render: <LegalNoticePage onNavigate={() => {}} />, marker: 'Éditeur du site' },
+  { label: 'CGU', render: <TermsOfUsePage onNavigate={() => {}} />, marker: 'Conditions générales d’utilisation' },
   { label: 'CGV', render: <TermsPage onNavigate={() => {}} />, marker: 'Conditions générales de vente' },
   { label: 'Confidentialité', render: <PrivacyPage onNavigate={() => {}} />, marker: 'Politique de confidentialité' },
   { label: 'Rétractation', render: <WithdrawalPage onNavigate={() => {}} />, marker: 'Rétractation et garantie commerciale' },
@@ -81,13 +83,22 @@ check('Rétractation : régime B2B rappelé', withdrawalHtml.includes('professio
 // visibles AVANT l'achat, pas seulement enfouis dans les CGV.
 const pricingHtml = renderToStaticMarkup(<PricingPage onNavigate={() => {}} />);
 check('Tarifs : offres réservées aux professionnels', pricingHtml.includes('réservées aux professionnels'));
-check('Tarifs : mention de franchise de TVA', pricingHtml.includes('293 B'));
+check('Tarifs : régime de taxe exact, sans franchise française', pricingHtml.includes('hors taxes') && !pricingHtml.includes('293 B'));
 check('Tarifs : plus aucune mention « Prix TTC » trompeuse', !pricingHtml.includes('Prix TTC'));
 check('Tarifs : les trois offres sont affichées', ['Essentiel', 'Professionnel', 'Cabinet'].every(p => pricingHtml.includes(p)));
 
 const landingHtml = renderToStaticMarkup(<LandingPage onNavigate={() => {}} />);
 check('Accueil : périmètre B2B rappelé', landingHtml.includes('réservées aux professionnels'));
-check('Accueil : liens légaux présents', ['/mentions-legales', '/cgv', '/confidentialite'].every(l => landingHtml.includes(l)));
+check('Accueil : liens légaux présents', ['/mentions-legales', '/cgu', '/cgv', '/confidentialite'].every(l => landingHtml.includes(l)));
+
+// 8. Console interne : la configuration juridique est visible et honnête.
+const dashboardHtml = renderToStaticMarkup(<ProgressDashboard onNavigate={() => {}} />);
+check('Suivi : console de configuration juridique rendue', dashboardHtml.includes('Configuration juridique de l’éditeur'));
+check('Suivi : état global incomplet annoncé', dashboardHtml.includes('Incomplet'));
+check('Suivi : champs sans objet marqués comme tels', dashboardHtml.includes('Non applicable'));
+check('Suivi : cinq documents listés', ['Mentions légales', 'Conditions générales d’utilisation', 'Conditions générales de vente', 'Politique de confidentialité', 'Rétractation et garantie commerciale'].every(t => dashboardHtml.includes(t)));
+check('Suivi : canaux non qualifiés signalés', dashboardHtml.includes('Maketou') && dashboardHtml.includes('à établir contractuellement'));
+check('Suivi : aucun « undefined » ni « NaN »', !dashboardHtml.includes('undefined') && !dashboardHtml.includes('NaN'));
 
 console.log(failures === 0 ? '\nSMOKE : tous les contrôles passent' : `\nSMOKE : ${failures} échec(s)`);
 process.exit(failures === 0 ? 0 : 1);

@@ -20,6 +20,7 @@ export const PATH_ROUTES: Record<string, PublicRoute> = {
   '/connexion': 'signin',
   '/inscription': 'signup',
   '/mentions-legales': 'legal',
+  '/cgu': 'cgu',
   '/cgv': 'terms',
   '/confidentialite': 'privacy',
   '/retractation': 'withdrawal',
