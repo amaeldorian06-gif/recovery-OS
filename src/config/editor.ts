@@ -418,6 +418,12 @@ function requiredFields(config: EditorConfig, documentId: DocumentId): NamedFiel
         ...base,
         ['identity.phone', 'Téléphone', config.identity.phone],
         ['registration.identifier', config.registration.identifierLabel, config.registration.identifier],
+        // LCEN art. 1-1 II : le directeur de la publication doit être identifié.
+        // Pour une personne physique, il se confond avec l'éditeur ; pour une
+        // société, il doit être nommé — son absence bloque donc le document.
+        ...(isCompany(config)
+          ? ([['publication.directorName', 'Directeur de la publication', resolvedPublicationDirector(config)]] as NamedField[])
+          : []),
       ];
     case 'cgu':
       return [...base, ['rights.holder', 'Titulaire des droits', resolvedRightsHolder(config)]];
@@ -577,13 +583,26 @@ export function isLegalIdentityIncomplete(config: EditorConfig = EDITOR_CONFIG):
 
 const quote = (value: string | null): string => (value === null ? 'null' : JSON.stringify(value));
 
+/**
+ * Nom de la fonction d'aide exportée pour chaque état.
+ * ⚠️ Ne jamais émettre directement la valeur de l'état : `to_complete(...)`
+ * n'existe pas dans le module et le bloc collé ne compilerait pas.
+ */
+export const STATE_HELPERS: Record<FieldState, string> = {
+  provided: 'provided',
+  not_applicable: 'notApplicable',
+  to_complete: 'toComplete',
+  legal_review_required: 'legalReview',
+};
+
 function literal(field: LegalField): string {
+  const helper = STATE_HELPERS[field.state];
   const args: string[] = [];
   if (field.state === 'provided') args.push(quote(field.value));
   else if (field.state === 'not_applicable') args.push(quote(field.note ?? 'Sans objet'));
   else if (field.state === 'to_complete') args.push(quote(field.note?.replace(/^À renseigner : /, '') ?? ''));
   else args.push(quote(field.note ?? 'À vérifier'));
-  return `${field.state}(${args.join(', ')})`;
+  return `${helper}(${args.join(', ')})`;
 }
 
 /**

@@ -11,7 +11,7 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test src/utils/dates.test.ts src/utils/money.test.ts src/utils/financial.test.ts src/utils/calculator.test.ts src/utils/seo.test.ts src/storage/repository.test.ts src/storage/backup.test.ts src/storage/license.test.ts src/utils/backupPolicy.test.ts src/app/routes.test.ts src/content/legal.test.ts src/config/editor.test.ts",
+    "test": "node --import tsx --test src/utils/dates.test.ts src/utils/money.test.ts src/utils/financial.test.ts src/utils/calculator.test.ts src/utils/seo.test.ts src/storage/repository.test.ts src/storage/backup.test.ts src/storage/license.test.ts src/utils/backupPolicy.test.ts src/app/routes.test.ts src/content/legal.test.ts src/config/editor.test.ts src/config/editorBuilder.test.ts",
     "build:server": "vite build && echo 'Build statique prêt pour Vercel (aucun serveur Node requis).'",
     "check": "npm run typecheck && npm test && npm run build",
     "smoke": "tsx scripts/smoke-render.tsx",

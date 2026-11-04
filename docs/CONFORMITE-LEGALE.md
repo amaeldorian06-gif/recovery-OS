@@ -54,6 +54,8 @@ Règle absolue : **une donnée absente n'est jamais remplacée par une invention
 - `src/config/tax.ts` — traitement fiscal affiché au public.
 - `src/content/legal.ts` — les cinq documents, construits depuis la configuration.
 - `src/components/LegalConfigPanel.tsx` — console interne d'état (page `/suivi`).
+- `src/config/editorBuilder.ts` — constructeur d'identité (logique pure) : à partir d'une saisie, produit la configuration typée, en respectant l'applicabilité par type et par pays.
+- `src/components/LegalIdentityBuilder.tsx` — formulaire correspondant (page `/suivi`). Saisie en mémoire, aucun stockage, aucune transmission ; le bloc généré est vérifié par compilation avant d'être proposé.
 
 ## 3. Les cinq documents
 
@@ -142,6 +144,8 @@ Cette qualification détermine pourtant qui est le vendeur contractuel, qui éme
 
 ## 6. Vérifications automatisées
 
+`src/config/editorBuilder.test.ts` — 26 tests : applicabilité par type et par pays, champs sans objet non réclamés, format de courriel et de téléphone, emplacement de modèle non remplacé, effet de la saisie sur les cinq documents, **bloc copiable compilable**.
+
 `src/config/editor.test.ts` — 20 tests :
 - la configuration livrée est bien `individual` / Cameroun ;
 - aucun champ SIREN, greffe, capital ou code postal n'est réclamé à tort ;
@@ -160,7 +164,7 @@ Cette qualification détermine pourtant qui est le vendeur contractuel, qui éme
 - les cinq documents affichent la même identité ;
 - un champ manquant produit `[à compléter]`, jamais une valeur plausible.
 
-`scripts/smoke-render.tsx` — 48 contrôles : rendu réel des 5 documents, bandeau d'état correct, absence de `undefined`/`NaN`, console `/suivi` cohérente.
+`scripts/smoke-render.tsx` — 51 contrôles : rendu réel des 5 documents, bandeau d'état correct, absence de `undefined`/`NaN`, console `/suivi` cohérente.
 
 ## 7. Réserves à assumer
 

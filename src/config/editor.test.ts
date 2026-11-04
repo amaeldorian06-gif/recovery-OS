@@ -252,7 +252,7 @@ test('Directeur de publication : confondu avec l’éditeur pour une personne ph
 test('Sérialisation : le littéral généré est du TypeScript, pas du JSON', () => {
   const literal = toConfigLiteral(EDITOR_CONFIG);
   assert.match(literal, /type: 'individual'/);
-  assert.match(literal, /to_complete\(/);
+  assert.match(literal, /toComplete\(/);
   assert.ok(!literal.includes('undefined'), 'aucun undefined ne doit apparaître');
 });
 
