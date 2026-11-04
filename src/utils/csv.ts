@@ -8,7 +8,37 @@ import { calculateDaysPastDue, getAgingBucket, calculateRiskScore } from './fina
  * mapping de colonnes FR/EN, validation explicite, aucun défaut silencieux.
  */
 
+/**
+ * Détecte le séparateur de colonnes à partir de la première ligne significative.
+ *
+ * Pourquoi c'est indispensable : les exports français (Sage, Cegid, Pennylane)
+ * utilisent le point-virgule, parce que la virgule y est le séparateur décimal.
+ * Un parseur limité à la virgule transforme alors toute la ligne d'en-tête en une
+ * seule colonne — et l'import échoue sans que l'utilisateur comprenne pourquoi.
+ *
+ * Les segments entre guillemets sont retirés avant le comptage : une virgule à
+ * l'intérieur d'un champ cité ne doit pas influencer la décision.
+ */
+export function detectCsvDelimiter(csvText: string): string {
+  const premiereLigne = csvText
+    .replace(/^\uFEFF/, '')
+    .split(/\r?\n/)
+    .find(ligne => ligne.trim().length > 0) ?? '';
+
+  const sansGuillemets = premiereLigne.replace(/"[^"]*"/g, '');
+  const candidats: Array<{ separateur: string; occurrences: number }> = [
+    { separateur: ';', occurrences: (sansGuillemets.match(/;/g) ?? []).length },
+    { separateur: ',', occurrences: (sansGuillemets.match(/,/g) ?? []).length },
+    { separateur: '\t', occurrences: (sansGuillemets.match(/\t/g) ?? []).length },
+  ];
+
+  // Aucun séparateur : une seule colonne, la virgule par défaut est neutre.
+  return candidats.reduce((meilleur, courant) => (courant.occurrences > meilleur.occurrences ? courant : meilleur))
+    .separateur;
+}
+
 export function parseCsvString(csvText: string): { headers: string[]; rows: string[][] } {
+  const delimiteur = detectCsvDelimiter(csvText);
   const lines: string[][] = [];
   let currentRow: string[] = [];
   let currentField = '';
@@ -25,7 +55,7 @@ export function parseCsvString(csvText: string): { headers: string[]; rows: stri
       } else {
         insideQuotes = !insideQuotes;
       }
-    } else if (char === ',' && !insideQuotes) {
+    } else if (char === delimiteur && !insideQuotes) {
       currentRow.push(currentField.trim());
       currentField = '';
     } else if ((char === '\r' || char === '\n') && !insideQuotes) {
