@@ -31,7 +31,8 @@ npm run build       # 447 kB (gzip 127 kB), dist/404.html présent
 - Le **chemin de capture** de l'`ErrorBoundary` est vérifié au niveau du contrat React (`getDerivedStateFromError`) et de son écran, **pas** par une exception réelle dans un navigateur : aucun navigateur n'est disponible dans l'environnement d'édition.
 - Les parcours réels sont désormais couverts par Playwright **en CI** (`npm run e2e`, job « Parcours navigateur »), et non plus seulement par rendu statique. L'environnement d'édition ne peut pas télécharger le navigateur (CDN bloqué) : l'exécution réelle a lieu dans GitHub Actions.
 - `LicenseCard` et `BackupReminder` dépendent du contexte applicatif : leur **logique** est testée, leur **rendu** ne l'est pas hors navigateur.
-- La page 404 statique suppose que Vercel sert `404.html` à la racine de `dist` pour un statut 404. **À confirmer après déploiement** (`curl -I https://<domaine>/page-inexistante` doit renvoyer `404`).
+- **404 en production** : `public/404.html` est copiée dans `dist/` et Vercel la sert pour un statut 404. `npm run dist:check` vérifie qu'elle est présente, autonome, non indexable, sans jeton de domaine résiduel. Le **statut HTTP réel** reste à confirmer après déploiement : `curl -I https://<domaine>/page-inexistante` doit renvoyer `404`. Depuis l'environnement d'édition, `.vercel.app` est injoignable (code 000), cette vérification n'a donc pas pu être faite ici.
+- **Divergence prévisualisation / production** : `vite preview` réécrit tout vers `index.html`, donc un chemin inconnu y rend la page 404 de l'application (avec un statut 200). En production, la réécriture n'existe pas : Vercel renvoie `404.html` avec un statut 404. Les deux comportements sont voulus ; le test E2E couvre le premier, `dist:check` le second.
 
 ## Étape 2 — Juridique et commercial (RÉDIGÉ, à compléter par l'éditeur)
 
@@ -62,6 +63,7 @@ Voir `docs/CONFORMITE-LEGALE.md` : sources, pièges évités (art. 6-III abrogé
 | # | Tâche | Statut |
 |---|---|---|
 | 10 | Playwright : inscription → import CSV → sauvegarde → persistance | **Fait — 8 scénarios verts en CI** (`npm run e2e`) |
+| 11 | Contrôle du dossier de production (404, routes ↔ réécritures, assets) | **Fait** (`npm run dist:check`, en CI) |
 | 11 | Test manuel Chrome / Firefox / Safari + navigation privée | Non fait |
 | 12 | Restauration d'une sauvegarde **volontairement corrompue** via l'UI | Non fait (couvert au niveau unitaire) |
 | 13 | Benchmark 10 000+ factures | Non fait |
