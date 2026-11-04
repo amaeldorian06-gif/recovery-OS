@@ -99,10 +99,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const realRepoRef = useRef<Repository | null>(null);
   const demoRepoRef = useRef<Repository | null>(null);
 
-  const activeRepo = useMemo<Repository | null>(() => {
-    if (mode === 'demo') return demoRepoRef.current;
-    return realRepoRef.current;
-  }, [mode]);
+  /**
+   * Miroir d'état des référentiels.
+   *
+   * ⚠️ Régression corrigée : `activeRepo` était un `useMemo` dépendant de
+   * `mode` uniquement. Or les référentiels sont créés après le premier rendu
+   * (ouverture IndexedDB asynchrone) et `mode` ne change pas — `setMode('real')`
+   * est sans effet quand l'état vaut déjà 'real'. La valeur restait donc `null`
+   * pour toute la durée de vie de l'application, et toute écriture échouait par
+   * « Stockage local indisponible » : inscription, activation de licence,
+   * paramètres. Les référentiels sont désormais exposés par un état, ce qui
+   * provoque le rendu attendu au moment où ils deviennent disponibles.
+   */
+  const [realRepo, setRealRepo] = useState<Repository | null>(null);
+  const [demoRepo, setDemoRepo] = useState<Repository | null>(null);
+
+  const activeRepo = mode === 'demo' ? demoRepo : realRepo;
 
   const loadAll = useCallback(async (repo: Repository, orgId: string) => {
     const [inv, act, hist, set, lic] = await Promise.all([
@@ -127,6 +139,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const repo = new Repository(new IndexedDBBackend());
         await repo.init();
         realRepoRef.current = repo;
+        if (!cancelled) setRealRepo(repo);
         const session = await repo.currentSession();
         if (session) {
           setOrganization(session.organization);
@@ -226,6 +239,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     ]));
     await repo.init();
     demoRepoRef.current = repo;
+    setDemoRepo(repo);
     const demoOrg: Organization = { ...DEMO_ORG, createdAt: new Date().toISOString() };
     await repo.importInvoices(demoOrg.id, buildDemoInvoices(), 'replace', 'EUR');
     setMode('demo');
@@ -236,6 +250,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const exitDemo = useCallback(() => {
     demoRepoRef.current = null;
+    setDemoRepo(null);
     setMode('real');
     setOrganization(null);
     setUser(null);
