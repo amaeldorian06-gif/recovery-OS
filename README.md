@@ -97,6 +97,8 @@ npx vercel --prod # ou import du dépôt GitHub dans Vercel
 
 ### Tests de bout en bout (automatisés, CI)
 
+`npm run dist:check` vérifie le dossier `dist/` avant déploiement : présence de `404.html`, cohérence entre les routes du code et les réécritures de `vercel.json` (une route oubliée renverrait 404 en production), assets référencés réellement présents, sitemap cohérent. Il tourne dans `npm run check` et en CI.
+
 `npm run e2e` lance 8 parcours dans Chromium sur le build de production. Le job CI « Parcours navigateur » les exécute à chaque poussée. En local, il faut d'abord `npx playwright install chromium`.
 
 ### Tests multi-navigateurs (manuel)

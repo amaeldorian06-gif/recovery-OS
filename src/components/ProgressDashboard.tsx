@@ -99,7 +99,9 @@ const VERIFICATIONS: Array<{ label: string; result: string; ok: boolean }> = [
   { label: 'Routes SPA (curl)', result: '/ · /apercu · /tarifs · /fonctionnalites → 200', ok: true },
   { label: 'Arbre Git', result: 'propre, 2 commits poussés sur la branche de session', ok: true },
   { label: 'Parcours E2E (Playwright, Chromium)', result: '8 / 8 verts en CI', ok: true },
+  { label: 'Contrôle du dossier de production', result: '33 / 33 verts — 404, routes, assets', ok: true },
   { label: 'Tests multi-navigateurs (manuel)', result: 'à faire — Firefox, Safari, Edge', ok: false },
+  { label: 'Statut HTTP réel de la 404 déployée', result: 'non vérifié — .vercel.app injoignable (code 000)', ok: false },
 ];
 
 const REMAINING = [

@@ -188,7 +188,12 @@ test.describe('Documents légaux', () => {
 });
 
 test.describe('Robustesse du routage', () => {
-  test('un chemin inconnu affiche la page 404, jamais l’accueil', async ({ page }) => {
+  // ⚠️ Ce test vérifie le routeur de l'application derrière le repli SPA du
+  // serveur de prévisualisation (`vite preview` réécrit tout vers index.html).
+  // En production, un chemin inconnu n'est PAS réécrit : Vercel sert
+  // `dist/404.html` avec un statut 404. Les deux comportements sont voulus ;
+  // `npm run dist:check` contrôle l'existence et la cohérence de ce fichier.
+  test('un chemin inconnu rend la page 404 de l’application (repli SPA)', async ({ page }) => {
     await page.goto('/page-qui-nexiste-pas');
     await expect(page.getByText('ERREUR 404')).toBeVisible();
     await expect(page.getByText('/page-qui-nexiste-pas')).toBeVisible();

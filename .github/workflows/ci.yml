@@ -39,6 +39,9 @@ jobs:
       - name: Build de production
         run: npm run build
 
+      - name: Contrôle du dossier de production
+        run: npm run dist:check
+
       - name: Contrôle du domaine injecté
         run: |
           test -f dist/index.html
