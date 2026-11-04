@@ -17,6 +17,19 @@ const PASSWORD = 'motdepasse-e2e-2026';
 /** Identifiant unique par exécution : évite tout état résiduel entre essais. */
 const stamp = Date.now();
 
+/**
+ * Exécute une étape nommée et préfixe toute erreur de son nom.
+ * Sans ce marquage, un timeout de 60 s ne dit pas quelle action a bloqué.
+ */
+async function etape<T>(nom: string, action: () => Promise<T>): Promise<T> {
+  try {
+    return await action();
+  } catch (erreur) {
+    const message = (erreur as Error).message.split('\n').slice(0, 3).join(' ');
+    throw new Error(`Étape « ${nom} » : ${message}`);
+  }
+}
+
 async function creerEspace(page: import('@playwright/test').Page): Promise<void> {
   // Remonter toute exception JavaScript de la page : sans cela, un échec
   // silencieux ne se traduirait que par « élément introuvable ».
@@ -26,8 +39,10 @@ async function creerEspace(page: import('@playwright/test').Page): Promise<void>
     if (message.type() === 'error') erreursPage.push(`console: ${message.text()}`);
   });
 
-  await page.goto('/inscription');
-  await expect(page.getByRole('heading', { name: 'Créer votre espace local' })).toBeVisible();
+  await etape('ouverture de la page d’inscription', async () => {
+    await page.goto('/inscription');
+    await expect(page.getByRole('heading', { name: 'Créer votre espace local' })).toBeVisible();
+  });
 
   // Diagnostic : distinguer « IndexedDB cassé » de « application en erreur ».
   const diagnosticStockage = await page.evaluate(async () => {
@@ -45,31 +60,38 @@ async function creerEspace(page: import('@playwright/test').Page): Promise<void>
     }
   });
 
-  await page.getByLabel('Nom complet').fill('Awa Ngo Bassa');
-  await page.getByLabel('Adresse e-mail').fill(`e2e-${stamp}@exemple.cm`);
-  await page.getByLabel('Organisation').fill(`Cabinet E2E ${stamp}`);
-  await page.getByLabel('Mot de passe (8 caractères min.)').fill(PASSWORD);
-  await page.getByLabel('Confirmation').fill(PASSWORD);
+  await etape('remplissage du formulaire', async () => {
+    await page.getByLabel('Nom complet').fill('Awa Ngo Bassa');
+    await page.getByLabel('Adresse e-mail').fill(`e2e-${stamp}@exemple.cm`);
+    await page.getByLabel('Organisation').fill(`Cabinet E2E ${stamp}`);
+    await page.getByLabel('Mot de passe (8 caractères min.)').fill(PASSWORD);
+    await page.getByLabel('Confirmation').fill(PASSWORD);
+  });
 
-  await page.getByRole('button', { name: /Créer mon espace et activer l.essai/ }).click();
+  await etape('soumission du formulaire', async () => {
+    await page.getByRole('button', { name: /Créer mon espace et activer l.essai/ }).click();
+  });
 
-  // Deux issues possibles : l'écran de succès ou un bandeau d'erreur.
-  const succes = page.getByRole('heading', { name: 'Votre espace est prêt' });
-  // Deux bandeaux possibles : erreur de formulaire (red-500) ou erreur
-  // applicative remontée par le contexte (rose-500).
-  const bandeauErreur = page.locator('[class*="bg-red-500"], [class*="bg-rose-500"]');
-  await expect(succes.or(bandeauErreur).first()).toBeVisible({ timeout: 30_000 });
+  await etape('attente de l’espace créé', async () => {
+    // Deux issues possibles : l'écran de succès ou un bandeau d'erreur
+    // (formulaire en rouge, ou erreur applicative en rose).
+    const succes = page.getByRole('heading', { name: 'Votre espace est prêt' });
+    const bandeauErreur = page.locator('[class*="bg-red-500"], [class*="bg-rose-500"]');
+    await expect(succes.or(bandeauErreur).first()).toBeVisible({ timeout: 25_000 });
 
-  if (await bandeauErreur.count() > 0) {
-    const texte = await bandeauErreur.first().innerText();
-    throw new Error(
-      `Inscription refusée : « ${texte.trim()} » | ${diagnosticStockage}` +
-      (erreursPage.length ? ` | ${erreursPage.join(' ; ')}` : '')
-    );
-  }
+    if (await bandeauErreur.count() > 0) {
+      const texte = (await bandeauErreur.first().innerText()).trim();
+      throw new Error(
+        `refus de l’application : « ${texte} » | ${diagnosticStockage}` +
+        (erreursPage.length ? ` | ${erreursPage.join(' ; ')}` : '')
+      );
+    }
+  });
 
-  await page.getByRole('button', { name: /Ouvrir mon tableau de bord/ }).click();
-  await expect(page).toHaveURL(/\/app\/dashboard/);
+  await etape('ouverture du tableau de bord', async () => {
+    await page.getByRole('button', { name: /Ouvrir mon tableau de bord/ }).click();
+    await expect(page).toHaveURL(/\/app\/dashboard/);
+  });
 }
 
 test.describe('Parcours nominal', () => {
