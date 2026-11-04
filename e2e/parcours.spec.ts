@@ -44,22 +44,6 @@ async function creerEspace(page: import('@playwright/test').Page): Promise<void>
     await expect(page.getByRole('heading', { name: 'Créer votre espace local' })).toBeVisible();
   });
 
-  // Diagnostic : distinguer « IndexedDB cassé » de « application en erreur ».
-  const diagnosticStockage = await page.evaluate(async () => {
-    if (!('indexedDB' in window)) return 'indexedDB absent du navigateur';
-    try {
-      const ouverture = indexedDB.open('diag-e2e', 1);
-      await new Promise<void>((resoudre, rejeter) => {
-        ouverture.onsuccess = () => resoudre();
-        ouverture.onerror = () => rejeter(ouverture.error ?? new Error('erreur inconnue'));
-        ouverture.onblocked = () => rejeter(new Error('ouverture bloquée'));
-      });
-      return 'indexedDB disponible';
-    } catch (erreur) {
-      return `indexedDB en échec : ${(erreur as Error).message}`;
-    }
-  });
-
   await etape('remplissage du formulaire', async () => {
     await page.getByLabel('Nom complet').fill('Awa Ngo Bassa');
     await page.getByLabel('Adresse e-mail').fill(`e2e-${stamp}@exemple.cm`);
@@ -77,12 +61,17 @@ async function creerEspace(page: import('@playwright/test').Page): Promise<void>
     // (formulaire en rouge, ou erreur applicative en rose).
     const succes = page.getByRole('heading', { name: 'Votre espace est prêt' });
     const bandeauErreur = page.locator('[class*="bg-red-500"], [class*="bg-rose-500"]');
-    await expect(succes.or(bandeauErreur).first()).toBeVisible({ timeout: 25_000 });
+    try {
+      await expect(succes.or(bandeauErreur).first()).toBeVisible({ timeout: 25_000 });
+    } catch {
+      const apercu = (await page.locator('body').innerText()).replace(/\s+/g, ' ').slice(0, 500);
+      throw new Error(`aucun retour visible après 25 s — écran : « ${apercu} »`);
+    }
 
     if (await bandeauErreur.count() > 0) {
       const texte = (await bandeauErreur.first().innerText()).trim();
       throw new Error(
-        `refus de l’application : « ${texte} » | ${diagnosticStockage}` +
+        `refus de l’application : « ${texte} »` +
         (erreursPage.length ? ` | ${erreursPage.join(' ; ')}` : '')
       );
     }
