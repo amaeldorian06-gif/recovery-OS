@@ -92,14 +92,14 @@ const PHASES: Phase[] = [
 
 const VERIFICATIONS: Array<{ label: string; result: string; ok: boolean }> = [
   { label: 'TypeScript (tsc --noEmit)', result: '0 erreur', ok: true },
-  { label: 'Tests unitaires (npm test)', result: '167 / 167 verts', ok: true },
+  { label: 'Tests unitaires (npm test)', result: '181 / 181 verts', ok: true },
   { label: 'Contrôle de rendu (npm run smoke)', result: '51 / 51 verts — 5 documents légaux', ok: true },
   { label: 'Build production (vite build)', result: '489,8 kB (gzip 139,8) + 54,8 kB de documents légaux à la demande', ok: true },
   { label: 'Configuration juridique (npm run legal:check)', result: 'bloquant — 7 champs manquants', ok: false },
   { label: 'Routes SPA (curl)', result: '/ · /apercu · /tarifs · /fonctionnalites → 200', ok: true },
   { label: 'Arbre Git', result: 'propre, 2 commits poussés sur la branche de session', ok: true },
-  { label: 'Tests multi-navigateurs (manuel)', result: 'à faire — Chrome, Firefox, Safari, Edge', ok: false },
-  { label: 'Tests E2E interface (Playwright/Cypress)', result: 'non implémentés', ok: false },
+  { label: 'Parcours E2E (Playwright, Chromium)', result: '8 / 8 verts en CI', ok: true },
+  { label: 'Tests multi-navigateurs (manuel)', result: 'à faire — Firefox, Safari, Edge', ok: false },
 ];
 
 const REMAINING = [
@@ -231,7 +231,7 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({ onNavigate
           {[
             { icon: GitCommitHorizontal, k: 'Étape en cours', v: '3', s: 'configuration juridique' },
             { icon: FileCode2, k: 'Fichiers suivis', v: '128', s: 'dont 47 sources TS/TSX' },
-            { icon: TestTubeDiagonal, k: 'Fichiers de test', v: '13', s: '167 cas exécutés' },
+            { icon: TestTubeDiagonal, k: 'Fichiers de test', v: '14', s: '181 cas + 8 parcours E2E' },
             { icon: ShieldCheck, k: 'Données en cloud', v: '0', s: 'par conception' },
           ].map(c => (
             <div key={c.k} className="rounded-xl border border-white/10 bg-[#0B0F17] p-4">
