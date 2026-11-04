@@ -95,6 +95,10 @@ npx vercel --prod # ou import du dépôt GitHub dans Vercel
 - Domaine : une seule variable, `VITE_SITE_URL` (ex. `https://mon-domaine.fr`), injectée au build dans `index.html`, `robots.txt` et `sitemap.xml`. Aucune édition manuelle de fichier.
 - **Aucune base de données ni serveur Node** n'est requis en production. La seule variable d'environnement est `VITE_SITE_URL`.
 
+### Tests de bout en bout (automatisés, CI)
+
+`npm run e2e` lance 8 parcours dans Chromium sur le build de production. Le job CI « Parcours navigateur » les exécute à chaque poussée. En local, il faut d'abord `npx playwright install chromium`.
+
 ### Tests multi-navigateurs (manuel)
 
 Le stockage utilise IndexedDB + Web Crypto — testez : Chrome, Firefox, Safari (macOS), Edge. Le mode privé peut limiter la persistance (l'application affiche alors une alerte).
@@ -112,7 +116,7 @@ Le stockage utilise IndexedDB + Web Crypto — testez : Chrome, Firefox, Safari 
 2. **Courbe CRF** : heuristique interne de recouvrement (0,99 → 0,245 par tranche). **Ce n'est pas** une provision IFRS 9 / CECL et aucune conformité réglementaire n'est revendiquée.
 3. **Serveur legacy non déployé** : `server.ts` + `src/server/` (Express) survivent comme documentation historique. Ils contiennent une vérification de mot de passe défaillante (prouvée par tests curl pendant l'audit) et sont **exclus du chemin de déploiement**. Ne pas les activer sans réécriture complète de l'authentification.
 4. **Pas de synchronisation** : conception sans cloud. Une perte de l'ordinateur sans sauvegarde = perte des données. La procédure de sauvegarde ci-dessus est donc structurante.
-5. **Tests navigateur non automatisés** : 141 tests couvrent la logique pure, `npm run smoke` contrôle le rendu statique de 5 documents légaux, mais l'UI n'a pas encore de tests E2E (Playwright/Cypress). Voir `docs/MISE-EN-PRODUCTION.md`.
+5. **Tests navigateur** : 181 tests couvrent la logique pure, `npm run smoke` contrôle le rendu statique, et `npm run e2e` exécute 8 parcours réels dans Chromium **en CI** (inscription, import CSV, sauvegarde, persistance, documents légaux, 404). Le test manuel multi-navigateurs reste à faire. Voir `docs/MISE-EN-PRODUCTION.md`.
 6. **Identité légale non renseignée** : `src/config/editor.ts` contient 7 champs à compléter (nom, adresse, ville, téléphone, courriel, numéro de déclaration d'activité, identifiant fiscal). `npm run legal:check` échoue tant qu'ils manquent et les pages affichent un bandeau « Document non finalisé ». Aucune valeur fictive n'est insérée à leur place. Voir `docs/CONFORMITE-LEGALE.md`.
 7. **Qualification contractuelle des canaux de distribution** : le rôle de Maketou et de Chariow (revendeur, mandataire, prestataire de paiement, merchant of record) n'est pas établi ; il est marqué `role: 'unknown'` et signalé comme point à vérifier.
 8. **Représentant RGPD (art. 27) non désigné** : nécessaire en principe pour vendre à des clients établis dans l'Union. Documenté comme point ouvert dans la politique de confidentialité.
